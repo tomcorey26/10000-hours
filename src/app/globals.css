@@ -125,3 +125,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes pulse-subtle {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.2); }
+  50% { box-shadow: 0 0 0 4px hsl(var(--primary) / 0.1); }
+}
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
