@@ -12,11 +12,12 @@ import { formatTime, formatElapsed, formatRemaining } from '@/lib/format';
 import type { Habit } from '@/lib/types';
 
 export function HabitCard({
-  habit, onStart, onDelete,
+  habit, onStart, onDelete, onLog,
 }: {
   habit: Habit;
   onStart: (habitId: number) => void;
   onDelete: (habitId: number) => void;
+  onLog: (habitId: number) => void;
 }) {
   const [elapsed, setElapsed] = useState('');
 
@@ -66,7 +67,10 @@ export function HabitCard({
           <span>{habit.streak > 0 ? `${habit.streak} day streak` : 'No streak'}</span>
         </div>
         {!isActive && (
-          <Button onClick={() => onStart(habit.id)} className="mt-1">Start</Button>
+          <div className="flex gap-2 mt-1">
+            <Button onClick={() => onStart(habit.id)} className="flex-1">Start</Button>
+            <Button variant="outline" onClick={() => onLog(habit.id)} className="flex-1">Log</Button>
+          </div>
         )}
       </CardContent>
     </Card>
