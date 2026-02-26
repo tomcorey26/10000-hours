@@ -17,8 +17,8 @@ test.describe('Sessions History', () => {
     // Navigate to Sessions tab
     await page.getByRole('button', { name: /sessions/i }).click();
 
-    // Should show the completed session
-    await expect(page.getByText('Guitar')).toBeVisible();
-    await expect(page.getByText('Stopwatch')).toBeVisible();
+    // Should show the completed session card with habit name and mode
+    await expect(page.locator('.font-medium', { hasText: 'Guitar' })).toBeVisible();
+    await expect(page.locator('.rounded-full', { hasText: 'stopwatch' })).toBeVisible();
   });
 });
