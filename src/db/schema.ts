@@ -21,6 +21,7 @@ export const timeSessions = sqliteTable('time_sessions', {
   startTime: integer('start_time', { mode: 'timestamp' }).notNull(),
   endTime: integer('end_time', { mode: 'timestamp' }).notNull(),
   durationSeconds: integer('duration_seconds').notNull(),
+  timerMode: text('timer_mode').notNull().$default(() => 'stopwatch'),
 });
 
 export const activeTimers = sqliteTable('active_timers', {
