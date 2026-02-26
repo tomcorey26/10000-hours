@@ -31,6 +31,7 @@ export function LogSessionModal({ habitId, habitName, onSave, onCancel }: Props)
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [minutes, setMinutes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const durationMinutes = Number(minutes);
   const isValid = minutes !== '' && durationMinutes > 0;
@@ -38,13 +39,19 @@ export function LogSessionModal({ habitId, habitName, onSave, onCancel }: Props)
   async function handleSave() {
     if (!isValid) return;
     setSaving(true);
+    setError('');
     const res = await fetch('/api/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ habitId, date, durationMinutes }),
     });
     setSaving(false);
-    if (res.ok) onSave();
+    if (res.ok) {
+      onSave();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || 'Failed to save session');
+    }
   }
 
   const dateOptions = getDateOptions();
@@ -78,6 +85,7 @@ export function LogSessionModal({ habitId, habitName, onSave, onCancel }: Props)
           className="w-full px-3 py-2 rounded-md border border-border bg-background mb-6"
         />
 
+        {error && <p className="text-destructive text-sm mb-2">{error}</p>}
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1" onClick={onCancel}>Cancel</Button>
           <Button className="flex-1" disabled={!isValid || saving} onClick={handleSave}>
