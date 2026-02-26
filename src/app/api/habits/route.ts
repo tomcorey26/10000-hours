@@ -20,28 +20,27 @@ export async function GET() {
 
   const habitsWithStats = await Promise.all(
     userHabits.map(async (habit) => {
-      // Today's total seconds
-      const todayResult = await db
-        .select({ total: sql<number>`COALESCE(SUM(${timeSessions.durationSeconds}), 0)` })
-        .from(timeSessions)
-        .where(and(eq(timeSessions.habitId, habit.id), gte(timeSessions.endTime, todayStart)))
-        .get();
-
-      // Active timer
-      const timer = await db
-        .select()
-        .from(activeTimers)
-        .where(eq(activeTimers.habitId, habit.id))
-        .get();
-
-      // Streak
-      const streak = await computeStreak(habit.id);
+      const [todayResult, timer, streak] = await Promise.all([
+        db
+          .select({ total: sql<number>`COALESCE(SUM(${timeSessions.durationSeconds}), 0)` })
+          .from(timeSessions)
+          .where(and(eq(timeSessions.habitId, habit.id), gte(timeSessions.endTime, todayStart)))
+          .get(),
+        db
+          .select()
+          .from(activeTimers)
+          .where(eq(activeTimers.habitId, habit.id))
+          .get(),
+        computeStreak(habit.id),
+      ]);
 
       return {
         ...habit,
         todaySeconds: todayResult?.total ?? 0,
         streak,
-        activeTimer: timer ? { startTime: timer.startTime.toISOString() } : null,
+        activeTimer: timer
+          ? { startTime: timer.startTime.toISOString(), targetDurationSeconds: timer.targetDurationSeconds ?? null }
+          : null,
       };
     })
   );

@@ -7,6 +7,7 @@ import { eq, and } from 'drizzle-orm';
 
 const startSchema = z.object({
   habitId: z.number().int().positive(),
+  targetDurationSeconds: z.number().int().positive().optional(),
 });
 
 export async function POST(request: Request) {
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
   const parsed = startSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'Invalid habitId' }, { status: 400 });
 
-  const { habitId } = parsed.data;
+  const { habitId, targetDurationSeconds } = parsed.data;
 
   // Verify habit belongs to user
   const habit = await db
@@ -47,8 +48,17 @@ export async function POST(request: Request) {
       await tx.delete(activeTimers).where(eq(activeTimers.userId, userId));
     }
     const now = new Date();
-    await tx.insert(activeTimers).values({ habitId, userId, startTime: now });
+    await tx.insert(activeTimers).values({
+      habitId,
+      userId,
+      startTime: now,
+      targetDurationSeconds: targetDurationSeconds ?? null,
+    });
   });
 
-  return NextResponse.json({ startTime: new Date().toISOString(), habitId });
+  return NextResponse.json({
+    startTime: new Date().toISOString(),
+    habitId,
+    targetDurationSeconds: targetDurationSeconds ?? null,
+  });
 }

@@ -28,6 +28,7 @@ export const activeTimers = sqliteTable('active_timers', {
   habitId: integer('habit_id').notNull().references(() => habits.id, { onDelete: 'cascade' }),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
   startTime: integer('start_time', { mode: 'timestamp' }).notNull(),
+  targetDurationSeconds: integer('target_duration_seconds'),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
