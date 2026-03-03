@@ -35,12 +35,12 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Install only what's needed for schema push at startup
+# Copy drizzle tooling and deps from builder for schema push at startup
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/src/db ./src/db
-RUN npm install --no-save drizzle-kit drizzle-orm @libsql/client
 
 USER nextjs
 
@@ -48,4 +48,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ./node_modules/.bin/drizzle-kit push && node server.js
+CMD node_modules/.bin/drizzle-kit push && node server.js
