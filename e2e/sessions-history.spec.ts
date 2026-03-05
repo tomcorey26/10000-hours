@@ -15,7 +15,7 @@ test.describe('Sessions History', () => {
     await page.getByRole('button', { name: /stop/i }).click();
 
     // Navigate to Sessions tab
-    await page.getByRole('button', { name: /sessions/i }).click();
+    await page.getByRole('link', { name: /sessions/i }).click();
 
     // Should show the completed session card with habit name and mode
     await expect(page.locator('.font-medium', { hasText: 'Guitar' })).toBeVisible();
@@ -23,7 +23,7 @@ test.describe('Sessions History', () => {
   });
 
   test('sessions tab shows "No sessions yet" when empty', async ({ page }) => {
-    await page.getByRole('button', { name: /sessions/i }).click();
+    await page.getByRole('link', { name: /sessions/i }).click();
     await expect(page.getByText('No sessions yet')).toBeVisible();
   });
 
@@ -38,7 +38,7 @@ test.describe('Sessions History', () => {
     await page.getByRole('button', { name: /stop/i }).click();
 
     // Go to Sessions tab
-    await page.getByRole('button', { name: /sessions/i }).click();
+    await page.getByRole('link', { name: /sessions/i }).click();
 
     await expect(page.locator('.rounded-full', { hasText: 'countdown' })).toBeVisible();
   });
@@ -54,7 +54,7 @@ test.describe('Sessions History', () => {
     await page.getByRole('button', { name: /stop/i }).click();
 
     // Navigate to Sessions tab
-    await page.getByRole('button', { name: /sessions/i }).click();
+    await page.getByRole('link', { name: /sessions/i }).click();
 
     // Should show Guitar session
     await expect(page.locator('.font-medium', { hasText: 'Guitar' })).toBeVisible();

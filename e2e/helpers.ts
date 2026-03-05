@@ -8,7 +8,7 @@ export async function signUp(page: Page) {
   const email = `test-${Date.now()}@example.com`;
   const password = 'testpass123';
 
-  await page.goto('/');
+  await page.goto('/login');
 
   // Switch from Sign In (default) to Sign Up mode
   await page.getByRole('button', { name: 'Sign up' }).click();

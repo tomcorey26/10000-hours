@@ -26,8 +26,8 @@ export function SessionsView({
 
   const initialData = initialSessions ? { sessions: initialSessions, totalSeconds: initialTotalSeconds ?? 0 } : undefined;
   const { data } = useSessions({ habitId: selectedHabitId || undefined, range: dateRange, viewMode }, initialData);
-  const sessions = data.sessions;
-  const totalSeconds = data.totalSeconds;
+  const sessions = data?.sessions ?? [];
+  const totalSeconds = data?.totalSeconds ?? 0;
 
   const dateRanges: { value: DateRange; label: string }[] = [
     { value: 'today', label: 'Today' },

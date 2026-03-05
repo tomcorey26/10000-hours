@@ -20,7 +20,7 @@ test.describe('Manual Session Logging', () => {
     await page.getByRole('button', { name: 'Log', exact: true }).click();
     await page.getByLabel('Duration (minutes)').fill('30');
     await page.getByRole('button', { name: /save/i }).click();
-    await page.getByRole('button', { name: /sessions/i }).click();
+    await page.getByRole('link', { name: /sessions/i }).click();
     await expect(page.locator('.font-medium', { hasText: 'Guitar' })).toBeVisible();
   });
 

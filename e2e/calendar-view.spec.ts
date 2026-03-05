@@ -8,7 +8,7 @@ test.describe('Calendar View', () => {
   });
 
   test('can toggle to calendar view', async ({ page }) => {
-    await page.getByRole('button', { name: /sessions/i }).click();
+    await page.getByRole('link', { name: /sessions/i }).click();
     await page.getByRole('button', { name: /calendar view/i }).click();
 
     // Should show month navigation and weekday headers
@@ -25,8 +25,11 @@ test.describe('Calendar View', () => {
     await expect(page.getByText('Recording...')).toBeVisible();
     await page.getByRole('button', { name: /stop/i }).click();
 
+    // Wait for redirect back to dashboard after stopping
+    await page.getByRole('heading', { name: '10,000 Hours' }).waitFor();
+
     // Go to calendar view
-    await page.getByRole('button', { name: /sessions/i }).click();
+    await page.getByRole('link', { name: /sessions/i }).click();
     await page.getByRole('button', { name: /calendar view/i }).click();
 
     // Click today's date to see the detail panel.
@@ -41,7 +44,7 @@ test.describe('Calendar View', () => {
   });
 
   test('can navigate between months', async ({ page }) => {
-    await page.getByRole('button', { name: /sessions/i }).click();
+    await page.getByRole('link', { name: /sessions/i }).click();
     await page.getByRole('button', { name: /calendar view/i }).click();
 
     const currentMonth = new Date().toLocaleDateString(undefined, {
@@ -56,7 +59,7 @@ test.describe('Calendar View', () => {
   });
 
   test('clicking a day with no sessions shows empty message', async ({ page }) => {
-    await page.getByRole('button', { name: /sessions/i }).click();
+    await page.getByRole('link', { name: /sessions/i }).click();
     await page.getByRole('button', { name: /calendar view/i }).click();
 
     // Click day "1" which likely has no sessions
@@ -67,7 +70,7 @@ test.describe('Calendar View', () => {
   });
 
   test('can toggle back to list view', async ({ page }) => {
-    await page.getByRole('button', { name: /sessions/i }).click();
+    await page.getByRole('link', { name: /sessions/i }).click();
     await page.getByRole('button', { name: /calendar view/i }).click();
 
     // Toggle back to list

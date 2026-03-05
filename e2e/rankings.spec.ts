@@ -7,7 +7,7 @@ test.describe('Rankings', () => {
   });
 
   test('rankings tab shows "No rankings yet" when no sessions exist', async ({ page }) => {
-    await page.getByRole('button', { name: /rankings/i }).click();
+    await page.getByRole('link', { name: /rankings/i }).click();
     await expect(page.getByText('No rankings yet')).toBeVisible();
   });
 
@@ -23,7 +23,7 @@ test.describe('Rankings', () => {
     await page.getByRole('button', { name: /stop/i }).click();
 
     // Go to Rankings tab
-    await page.getByRole('button', { name: /rankings/i }).click();
+    await page.getByRole('link', { name: /rankings/i }).click();
 
     // Guitar should appear ranked #1
     await expect(page.getByText('Guitar')).toBeVisible();

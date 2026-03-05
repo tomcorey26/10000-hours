@@ -1,4 +1,4 @@
-import { useSuspenseQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { queryKeys } from '@/lib/query-keys';
 import type { Session } from '@/lib/types';
@@ -6,7 +6,9 @@ import type { Session } from '@/lib/types';
 type SessionFilters = { habitId?: string; range?: string; viewMode: string };
 
 export function useSessions(filters: SessionFilters, initialData?: { sessions: Session[]; totalSeconds: number }) {
-  return useSuspenseQuery({
+  // Only use initialData for the default (unfiltered) query to avoid stale data on filter changes
+  const isDefaultFilter = !filters.habitId && filters.range === 'all';
+  return useQuery({
     queryKey: queryKeys.sessions.list(filters),
     queryFn: () => {
       const params = new URLSearchParams();
@@ -16,7 +18,7 @@ export function useSessions(filters: SessionFilters, initialData?: { sessions: S
       }
       return api<{ sessions: Session[]; totalSeconds: number }>(`/api/sessions?${params}`);
     },
-    ...(initialData ? { initialData } : {}),
+    ...(initialData && isDefaultFilter ? { initialData } : {}),
   });
 }
 
