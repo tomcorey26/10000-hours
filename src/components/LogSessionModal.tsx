@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useLogSession } from '@/hooks/use-sessions';
+import { ApiError } from '@/lib/api';
 
 type Props = {
   habitId: number;
@@ -30,28 +32,25 @@ function getDateOptions(): { label: string; value: string }[] {
 export function LogSessionModal({ habitId, habitName, onSave, onCancel }: Props) {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [minutes, setMinutes] = useState('');
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const logSession = useLogSession();
 
   const durationMinutes = Number(minutes);
   const isValid = minutes !== '' && durationMinutes > 0;
 
-  async function handleSave() {
+  function handleSave() {
     if (!isValid) return;
-    setSaving(true);
     setError('');
-    const res = await fetch('/api/sessions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ habitId, date, durationMinutes }),
-    });
-    setSaving(false);
-    if (res.ok) {
-      onSave();
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || 'Failed to save session');
-    }
+    logSession.mutate(
+      { habitId, date, durationMinutes },
+      {
+        onSuccess: () => onSave(),
+        onError: (err) => {
+          setError(err instanceof ApiError ? err.message : 'Failed to save session');
+        },
+      },
+    );
   }
 
   const dateOptions = getDateOptions();
@@ -88,8 +87,8 @@ export function LogSessionModal({ habitId, habitName, onSave, onCancel }: Props)
         {error && <p className="text-destructive text-sm mb-2">{error}</p>}
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1" onClick={onCancel}>Cancel</Button>
-          <Button className="flex-1" disabled={!isValid || saving} onClick={handleSave}>
-            {saving ? 'Saving...' : 'Save'}
+          <Button className="flex-1" disabled={!isValid || logSession.isPending} onClick={handleSave}>
+            {logSession.isPending ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </div>
