@@ -1,32 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { AuthForm } from '@/components/AuthForm';
 import { Dashboard } from '@/components/Dashboard';
+import { FullPageSpinner } from '@/components/Spinner';
 
 export default function Home() {
-  const [user, setUser] = useState<{ id: number; email: string } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: user, isLoading } = useAuth();
 
-  async function checkAuth() {
-    const res = await fetch('/api/auth/me');
-    if (res.ok) {
-      const data = await res.json();
-      setUser(data.user);
-    } else {
-      setUser(null);
-    }
-    setLoading(false);
-  }
+  if (isLoading) return <FullPageSpinner />;
+  if (!user) return <AuthForm />;
 
-  useEffect(() => { checkAuth(); }, []);
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-background">
-      <p className="text-muted-foreground">Loading...</p>
-    </div>;
-  }
-
-  if (!user) return <AuthForm onSuccess={checkAuth} />;
-  return <Dashboard user={user} onLogout={checkAuth} />;
+  return (
+    <Suspense fallback={<FullPageSpinner />}>
+      <Dashboard user={user} />
+    </Suspense>
+  );
 }
