@@ -7,15 +7,25 @@ import { CalendarView } from '@/components/CalendarView';
 import { List, CalendarDays } from 'lucide-react';
 import { formatTime } from '@/lib/format';
 import { useSessions } from '@/hooks/use-sessions';
+import type { Session } from '@/lib/types';
 
 type DateRange = 'today' | 'week' | 'month' | 'all';
 
-export function SessionsView({ habits }: { habits: { id: number; name: string }[] }) {
+export function SessionsView({
+  habits,
+  initialSessions,
+  initialTotalSeconds,
+}: {
+  habits: { id: number; name: string }[];
+  initialSessions?: Session[];
+  initialTotalSeconds?: number;
+}) {
   const [selectedHabitId, setSelectedHabitId] = useState<string>('');
   const [dateRange, setDateRange] = useState<DateRange>('all');
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
 
-  const { data } = useSessions({ habitId: selectedHabitId || undefined, range: dateRange, viewMode });
+  const initialData = initialSessions ? { sessions: initialSessions, totalSeconds: initialTotalSeconds ?? 0 } : undefined;
+  const { data } = useSessions({ habitId: selectedHabitId || undefined, range: dateRange, viewMode }, initialData);
   const sessions = data.sessions;
   const totalSeconds = data.totalSeconds;
 

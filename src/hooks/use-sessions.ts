@@ -5,7 +5,7 @@ import type { Session } from '@/lib/types';
 
 type SessionFilters = { habitId?: string; range?: string; viewMode: string };
 
-export function useSessions(filters: SessionFilters) {
+export function useSessions(filters: SessionFilters, initialData?: { sessions: Session[]; totalSeconds: number }) {
   return useSuspenseQuery({
     queryKey: queryKeys.sessions.list(filters),
     queryFn: () => {
@@ -16,6 +16,7 @@ export function useSessions(filters: SessionFilters) {
       }
       return api<{ sessions: Session[]; totalSeconds: number }>(`/api/sessions?${params}`);
     },
+    ...(initialData ? { initialData } : {}),
   });
 }
 
