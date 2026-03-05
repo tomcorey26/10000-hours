@@ -77,6 +77,10 @@ export function Dashboard({ initialHabits }: { initialHabits: Habit[] }) {
         />
       )}
 
+      <div className="mb-3">
+        <AddHabitForm onAdd={handleAdd} />
+      </div>
+
       {habits.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">Start by adding your first habit</p>
@@ -93,8 +97,6 @@ export function Dashboard({ initialHabits }: { initialHabits: Habit[] }) {
           ))}
         </div>
       )}
-
-      <AddHabitForm onAdd={handleAdd} />
     </>
   );
 }

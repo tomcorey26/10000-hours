@@ -31,7 +31,7 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
 
   if (mode === 'select') {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex flex-col items-center pt-[25vh] px-4">
         <h2 className="text-2xl font-bold mb-2">{habitName}</h2>
         <p className="text-muted-foreground mb-8">Choose timer mode</p>
 
@@ -61,7 +61,7 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
 
   // Countdown mode
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex flex-col items-center pt-[25vh] px-4">
       <h2 className="text-2xl font-bold mb-2">{habitName}</h2>
       <p className="text-muted-foreground mb-8">Set countdown duration</p>
 
