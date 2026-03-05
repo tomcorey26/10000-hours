@@ -5,35 +5,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useLogin, useSignup } from '@/hooks/use-auth';
+import { ApiError } from '@/lib/api';
 
-export function AuthForm({ onSuccess }: { onSuccess: () => void }) {
+export function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const login = useLogin();
+  const signup = useSignup();
+  const mutation = isLogin ? login : signup;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    setLoading(true);
-
-    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(data.error || 'Something went wrong');
-      return;
-    }
-
-    onSuccess();
+    mutation.mutate(
+      { email, password },
+      {
+        onError: (err) => {
+          setError(err instanceof ApiError ? err.message : 'Something went wrong');
+        },
+      },
+    );
   }
 
   return (
@@ -54,8 +49,8 @@ export function AuthForm({ onSuccess }: { onSuccess: () => void }) {
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required className="bg-background" />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? '...' : isLogin ? 'Sign In' : 'Sign Up'}
+            <Button type="submit" className="w-full" disabled={mutation.isPending}>
+              {mutation.isPending ? '...' : isLogin ? 'Sign In' : 'Sign Up'}
             </Button>
           </form>
           <p className="text-center text-sm text-muted-foreground mt-4">
