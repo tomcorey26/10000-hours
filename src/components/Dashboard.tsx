@@ -52,8 +52,8 @@ export function Dashboard({ user }: { user: { id: number; email: string } }) {
     deleteHabit.mutate(habitId);
   }
 
-  function handleAdd(name: string) {
-    addHabit.mutate(name);
+  async function handleAdd(name: string) {
+    await addHabit.mutateAsync(name);
   }
 
   function handleLogClick(habitId: number) {
