@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +10,7 @@ import { useLogin, useSignup } from '@/hooks/use-auth';
 import { ApiError } from '@/lib/api';
 
 export function AuthForm() {
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,6 +26,7 @@ export function AuthForm() {
     mutation.mutate(
       { email, password },
       {
+        onSuccess: () => router.push('/dashboard'),
         onError: (err) => {
           setError(err instanceof ApiError ? err.message : 'Something went wrong');
         },
