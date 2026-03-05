@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
+    "@tanstack/react-query": "^5.90.21",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
