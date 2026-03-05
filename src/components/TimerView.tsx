@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { formatTime, formatElapsed, formatRemaining, isCountdownComplete } from '@/lib/format';
+import { useStopTimer } from '@/hooks/use-habits';
 
 type Props = {
   habitName: string;
@@ -10,12 +12,13 @@ type Props = {
   targetDurationSeconds: number | null;
   todaySeconds: number;
   streak: number;
-  onStop: () => void;
-  onBack: () => void;
 };
 
-export function TimerView({ habitName, startTime, targetDurationSeconds, todaySeconds, streak, onStop, onBack }: Props) {
+export function TimerView({ habitName, startTime, targetDurationSeconds, todaySeconds, streak }: Props) {
   const isCountdown = targetDurationSeconds !== null;
+  const router = useRouter();
+  const stopTimer = useStopTimer();
+
   const [display, setDisplay] = useState(() =>
     isCountdown
       ? formatRemaining(startTime, targetDurationSeconds)
@@ -25,6 +28,16 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
     isCountdown ? isCountdownComplete(startTime, targetDurationSeconds) : false
   );
   const autoStopTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleStop() {
+    stopTimer.mutate(undefined, {
+      onSuccess: () => router.push('/dashboard'),
+    });
+  }
+
+  function handleBack() {
+    router.push('/dashboard');
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -40,7 +53,6 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
     return () => clearInterval(interval);
   }, [startTime, targetDurationSeconds, isCountdown]);
 
-  // Auto-stop and alarm when countdown finishes
   useEffect(() => {
     if (!finished) return;
 
@@ -52,7 +64,7 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
     }
 
     autoStopTimeout.current = setTimeout(() => {
-      onStop();
+      handleStop();
     }, 2000);
 
     return () => {
@@ -60,12 +72,12 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
         clearTimeout(autoStopTimeout.current);
       }
     };
-  }, [finished, onStop]);
+  }, [finished]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="flex items-center justify-between px-4 py-4 relative z-10">
-        <button onClick={onBack} className="text-muted-foreground text-sm">&larr; Back</button>
+        <button onClick={handleBack} className="text-muted-foreground text-sm">&larr; Back</button>
         <span className="font-semibold">{habitName}</span>
         <div className="w-12" />
       </header>
@@ -85,7 +97,7 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
           )}
         </div>
 
-        <Button size="lg" onClick={onStop} className="px-12 py-6 text-lg">Stop</Button>
+        <Button size="lg" onClick={handleStop} className="px-12 py-6 text-lg">Stop</Button>
       </div>
 
       <footer className="px-4 pb-[max(2rem,env(safe-area-inset-bottom))] text-center space-y-1">
