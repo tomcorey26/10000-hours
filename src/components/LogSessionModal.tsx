@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLogSession } from '@/hooks/use-sessions';
 import { ApiError } from '@/lib/api';
+import { useHaptics } from '@/hooks/use-haptics';
 
 type Props = {
   habitId: number;
@@ -35,6 +36,7 @@ export function LogSessionModal({ habitId, habitName, onSave, onCancel }: Props)
   const [error, setError] = useState('');
 
   const logSession = useLogSession();
+  const { trigger } = useHaptics();
 
   const durationMinutes = Number(minutes);
   const isValid = minutes !== '' && durationMinutes > 0;
@@ -45,8 +47,12 @@ export function LogSessionModal({ habitId, habitName, onSave, onCancel }: Props)
     logSession.mutate(
       { habitId, date, durationMinutes },
       {
-        onSuccess: () => onSave(),
+        onSuccess: () => {
+          trigger('success');
+          onSave();
+        },
         onError: (err) => {
+          trigger('error');
           setError(err instanceof ApiError ? err.message : 'Failed to save session');
         },
       },

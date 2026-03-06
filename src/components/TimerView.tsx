@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { formatTime, formatElapsed, formatRemaining, isCountdownComplete } from '@/lib/format';
 import { useStopTimer } from '@/hooks/use-habits';
+import { useHaptics } from '@/hooks/use-haptics';
 
 type Props = {
   habitName: string;
@@ -18,6 +19,7 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
   const isCountdown = targetDurationSeconds !== null;
   const router = useRouter();
   const stopTimer = useStopTimer();
+  const { trigger } = useHaptics();
 
   const [display, setDisplay] = useState(() =>
     isCountdown
@@ -30,6 +32,7 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
   const autoStopTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleStop() {
+    trigger('heavy');
     stopTimer.mutate(undefined, {
       onSuccess: () => router.push('/dashboard'),
     });
@@ -55,6 +58,8 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
 
   useEffect(() => {
     if (!finished) return;
+
+    trigger('success');
 
     try {
       const audio = new Audio('/alarm.mp3');

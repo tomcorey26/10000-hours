@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getMonthGrid, toDateKey, formatDayHeader, isoToDateKey } from '@/lib/calendar';
 import { getHabitColor } from '@/lib/habit-colors';
+import { useHaptics } from '@/hooks/use-haptics';
 import type { Session } from '@/lib/types';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export function CalendarView({ sessions, habits }: Props) {
+  const { trigger } = useHaptics();
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
@@ -54,6 +56,7 @@ export function CalendarView({ sessions, habits }: Props) {
   });
 
   function prevMonth() {
+    trigger('light');
     setCurrentMonth(prev => {
       const d = new Date(prev.year, prev.month - 1);
       return { year: d.getFullYear(), month: d.getMonth() };
@@ -62,6 +65,7 @@ export function CalendarView({ sessions, habits }: Props) {
   }
 
   function nextMonth() {
+    trigger('light');
     setCurrentMonth(prev => {
       const d = new Date(prev.year, prev.month + 1);
       return { year: d.getFullYear(), month: d.getMonth() };
@@ -120,7 +124,7 @@ export function CalendarView({ sessions, habits }: Props) {
           return (
             <button
               key={i}
-              onClick={() => setSelectedDate(isSelected ? null : key)}
+              onClick={() => { trigger('selection'); setSelectedDate(isSelected ? null : key); }}
               className={`
                 relative flex flex-col items-center py-1.5 text-sm rounded-md transition-colors
                 ${!isCurrentMonth ? 'text-muted-foreground/40' : ''}

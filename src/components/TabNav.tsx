@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useHaptics } from '@/hooks/use-haptics';
 
 const TABS = [
   { href: '/dashboard', label: 'Skills' },
@@ -11,6 +12,7 @@ const TABS = [
 
 export function TabNav() {
   const pathname = usePathname();
+  const { trigger } = useHaptics();
 
   return (
     <div className="flex mb-4 rounded-lg bg-muted p-1">
@@ -18,6 +20,7 @@ export function TabNav() {
         <Link
           key={tab.href}
           href={tab.href}
+          onClick={() => trigger('selection')}
           className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors text-center ${
             pathname.startsWith(tab.href)
               ? 'bg-background shadow-sm'

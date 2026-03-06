@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useLogin, useSignup } from '@/hooks/use-auth';
 import { ApiError } from '@/lib/api';
+import { useHaptics } from '@/hooks/use-haptics';
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email address'),
@@ -27,6 +28,7 @@ type FormData = z.infer<typeof signupSchema>;
 export function AuthForm() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
+  const { trigger } = useHaptics();
 
   const {
     register,
@@ -47,8 +49,12 @@ export function AuthForm() {
   function onSubmit(data: FormData) {
     clearErrors('root');
     mutation.mutate(data, {
-      onSuccess: () => router.push('/dashboard'),
+      onSuccess: () => {
+        trigger('success');
+        router.push('/dashboard');
+      },
       onError: (err) => {
+        trigger('error');
         if (err instanceof ApiError) {
           if (err.status === 409) {
             setError('email', { message: 'An account with this email already exists' });
@@ -65,6 +71,7 @@ export function AuthForm() {
   }
 
   function toggleMode() {
+    trigger('selection');
     setIsLogin(!isLogin);
     reset();
   }

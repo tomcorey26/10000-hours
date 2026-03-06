@@ -7,6 +7,7 @@ import { CalendarView } from '@/components/CalendarView';
 import { List, CalendarDays } from 'lucide-react';
 import { formatTime } from '@/lib/format';
 import { useSessions } from '@/hooks/use-sessions';
+import { useHaptics } from '@/hooks/use-haptics';
 import type { Session } from '@/lib/types';
 
 type DateRange = 'today' | 'week' | 'month' | 'all';
@@ -23,6 +24,7 @@ export function SessionsView({
   const [selectedHabitId, setSelectedHabitId] = useState<string>('');
   const [dateRange, setDateRange] = useState<DateRange>('all');
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const { trigger } = useHaptics();
 
   const initialData = initialSessions ? { sessions: initialSessions, totalSeconds: initialTotalSeconds ?? 0 } : undefined;
   const { data } = useSessions({ habitId: selectedHabitId || undefined, range: dateRange, viewMode }, initialData);
@@ -74,14 +76,14 @@ export function SessionsView({
           </select>
           <div className="flex rounded-md border border-input">
             <button
-              onClick={() => setViewMode('list')}
+              onClick={() => { trigger('selection'); setViewMode('list'); }}
               className={`p-2 rounded-l-md transition-colors ${viewMode === 'list' ? 'bg-muted' : ''}`}
               aria-label="List view"
             >
               <List className="h-4 w-4" />
             </button>
             <button
-              onClick={() => setViewMode('calendar')}
+              onClick={() => { trigger('selection'); setViewMode('calendar'); }}
               className={`p-2 rounded-r-md transition-colors ${viewMode === 'calendar' ? 'bg-muted' : ''}`}
               aria-label="Calendar view"
             >
@@ -98,7 +100,7 @@ export function SessionsView({
                 variant={dateRange === r.value ? 'default' : 'outline'}
                 size="sm"
                 className="flex-1 text-xs"
-                onClick={() => setDateRange(r.value)}
+                onClick={() => { trigger('light'); setDateRange(r.value); }}
               >
                 {r.label}
               </Button>

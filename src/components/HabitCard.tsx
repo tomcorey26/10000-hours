@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useEffect, useState } from 'react';
 import { formatTime, formatElapsed, formatRemaining } from '@/lib/format';
+import { useHaptics } from '@/hooks/use-haptics';
 import type { Habit } from '@/lib/types';
 
 export function HabitCard({
@@ -20,6 +21,7 @@ export function HabitCard({
   onLog: (habitId: number) => void;
 }) {
   const [elapsed, setElapsed] = useState('');
+  const { trigger } = useHaptics();
 
   const activeStartTime = habit.activeTimer?.startTime;
 
@@ -56,7 +58,7 @@ export function HabitCard({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => onDelete(habit.id)}>Delete</AlertDialogAction>
+                <AlertDialogAction onClick={() => { trigger('error'); onDelete(habit.id); }}>Delete</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -68,8 +70,8 @@ export function HabitCard({
         </div>
         {!isActive && (
           <div className="flex gap-2 mt-1">
-            <Button onClick={() => onStart(habit.id)} className="flex-1">Start</Button>
-            <Button variant="outline" onClick={() => onLog(habit.id)} className="flex-1">Log</Button>
+            <Button onClick={() => { trigger('medium'); onStart(habit.id); }} className="flex-1">Start</Button>
+            <Button variant="outline" onClick={() => { trigger('light'); onLog(habit.id); }} className="flex-1">Log</Button>
           </div>
         )}
       </CardContent>

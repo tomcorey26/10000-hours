@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useHaptics } from '@/hooks/use-haptics';
 
 type Props = {
   habitName: string;
@@ -21,6 +22,7 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
   const [mode, setMode] = useState<'select' | 'countdown'>('select');
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [customMinutes, setCustomMinutes] = useState('');
+  const { trigger } = useHaptics();
 
   const selectedSeconds =
     selectedPreset !== null
@@ -36,14 +38,14 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
         <p className="text-muted-foreground mb-8">Choose timer mode</p>
 
         <div className="flex flex-col gap-3 w-full max-w-xs">
-          <Button size="lg" className="w-full py-6 text-lg" onClick={() => onStart()}>
+          <Button size="lg" className="w-full py-6 text-lg" onClick={() => { trigger('medium'); onStart(); }}>
             Stopwatch
           </Button>
           <Button
             size="lg"
             variant="outline"
             className="w-full py-6 text-lg"
-            onClick={() => setMode('countdown')}
+            onClick={() => { trigger('light'); setMode('countdown'); }}
           >
             Countdown
           </Button>
@@ -70,6 +72,7 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
           <button
             key={preset.label}
             onClick={() => {
+              trigger('selection');
               setSelectedPreset(preset.seconds);
               setCustomMinutes('');
             }}
@@ -101,6 +104,7 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
         disabled={selectedSeconds === null}
         onClick={() => {
           if (selectedSeconds !== null) {
+            trigger('medium');
             onStart(selectedSeconds);
           }
         }}
