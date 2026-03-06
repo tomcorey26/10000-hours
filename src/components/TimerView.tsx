@@ -1,11 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { formatTime, formatElapsed, formatRemaining, isCountdownComplete } from '@/lib/format';
-import { useStopTimer } from '@/hooks/use-habits';
-import { useHaptics } from '@/hooks/use-haptics';
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  formatTime,
+  formatElapsed,
+  formatRemaining,
+  isCountdownComplete,
+} from "@/lib/format";
+import { useStopTimer } from "@/hooks/use-habits";
+import { useHaptics } from "@/hooks/use-haptics";
 
 type Props = {
   habitName: string;
@@ -15,7 +20,13 @@ type Props = {
   streak: number;
 };
 
-export function TimerView({ habitName, startTime, targetDurationSeconds, todaySeconds, streak }: Props) {
+export function TimerView({
+  habitName,
+  startTime,
+  targetDurationSeconds,
+  todaySeconds,
+  streak,
+}: Props) {
   const isCountdown = targetDurationSeconds !== null;
   const router = useRouter();
   const stopTimer = useStopTimer();
@@ -24,22 +35,22 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
   const [display, setDisplay] = useState(() =>
     isCountdown
       ? formatRemaining(startTime, targetDurationSeconds)
-      : formatElapsed(startTime)
+      : formatElapsed(startTime),
   );
   const [finished, setFinished] = useState(() =>
-    isCountdown ? isCountdownComplete(startTime, targetDurationSeconds) : false
+    isCountdown ? isCountdownComplete(startTime, targetDurationSeconds) : false,
   );
   const autoStopTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleStop() {
-    trigger('heavy');
+    trigger("buzz");
     stopTimer.mutate(undefined, {
-      onSuccess: () => router.push('/dashboard'),
+      onSuccess: () => router.push("/dashboard"),
     });
   }
 
   function handleBack() {
-    router.push('/dashboard');
+    router.push("/dashboard");
   }
 
   useEffect(() => {
@@ -59,10 +70,10 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
   useEffect(() => {
     if (!finished) return;
 
-    trigger('success');
+    trigger("buzz");
 
     try {
-      const audio = new Audio('/alarm.mp3');
+      const audio = new Audio("/alarm.mp3");
       audio.play().catch(() => {});
     } catch {
       // Ignore audio errors
@@ -82,33 +93,43 @@ export function TimerView({ habitName, startTime, targetDurationSeconds, todaySe
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="flex items-center justify-between px-4 py-4 relative z-10">
-        <button onClick={handleBack} className="text-muted-foreground text-sm">&larr; Back</button>
+        <button onClick={handleBack} className="text-muted-foreground text-sm">
+          &larr; Back
+        </button>
         <span className="font-semibold">{habitName}</span>
         <div className="w-12" />
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 -mt-16">
-        <p className="text-6xl font-mono font-light tracking-tight mb-3">{display}</p>
+        <p className="text-6xl font-mono font-light tracking-tight mb-3">
+          {display}
+        </p>
         <div className="flex items-center gap-2 mb-12">
           {finished ? (
-            <span className="text-sm font-semibold text-primary">Time&apos;s up!</span>
+            <span className="text-sm font-semibold text-primary">
+              Time&apos;s up!
+            </span>
           ) : (
             <>
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               <span className="text-sm text-muted-foreground">
-                {isCountdown ? 'Counting down...' : 'Recording...'}
+                {isCountdown ? "Counting down..." : "Recording..."}
               </span>
             </>
           )}
         </div>
 
-        <Button size="lg" onClick={handleStop} className="px-12 py-6 text-lg">Stop</Button>
+        <Button size="lg" onClick={handleStop} className="px-12 py-6 text-lg">
+          Stop
+        </Button>
       </div>
 
       <footer className="px-4 pb-[max(2rem,env(safe-area-inset-bottom))] text-center space-y-1">
-        <p className="text-sm text-muted-foreground">Today total: {formatTime(todaySeconds)}</p>
         <p className="text-sm text-muted-foreground">
-          {streak > 0 ? `${streak} day streak` : 'No streak yet'}
+          Today total: {formatTime(todaySeconds)}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {streak > 0 ? `${streak} day streak` : "No streak yet"}
         </p>
       </footer>
     </div>
