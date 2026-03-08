@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { PressableButton } from "@/components/ui/pressable-button";
 import {
@@ -13,6 +13,39 @@ import { getRandomCongratsMessage } from "@/lib/congrats-messages";
 import { useStopTimer } from "@/hooks/use-habits";
 import { useHaptics } from "@/hooks/use-haptics";
 import { FullHeight } from "@/components/ui/full-height";
+
+const BUBBLE_EMOJIS = ["🎉", "⭐", "🔥", "💪", "✨", "🏆", "🎯", "💥", "🙌", "👏"];
+
+function EmojiBubbles() {
+  const bubbles = useMemo(() => {
+    return Array.from({ length: 14 }, (_, i) => ({
+      emoji: BUBBLE_EMOJIS[i % BUBBLE_EMOJIS.length],
+      left: `${5 + (i * 7) % 90}%`,
+      duration: 2.5 + (i % 4) * 0.6,
+      delay: (i % 7) * 0.4,
+      size: 1.2 + (i % 3) * 0.5,
+    }));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {bubbles.map((b, i) => (
+        <span
+          key={i}
+          className="absolute bottom-0"
+          style={{
+            left: b.left,
+            fontSize: `${b.size}rem`,
+            animation: `bubble-up ${b.duration}s ease-out ${0.4 + b.delay}s infinite`,
+            opacity: 0,
+          }}
+        >
+          {b.emoji}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 type Props = {
   habitName: string;
@@ -115,8 +148,9 @@ export function TimerView({
 
   if (successData) {
     return (
-      <FullHeight>
-        <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+      <FullHeight className="relative">
+        <EmojiBubbles />
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-6 animate-slam-down relative z-10">
           <p className="text-6xl mb-6">&#127942;</p>
           <h1 className="text-2xl font-bold mb-3">Session Complete!</h1>
           <p className="text-lg text-muted-foreground mb-6 max-w-xs">
