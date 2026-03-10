@@ -1,6 +1,8 @@
+import Link from 'next/link';
 import { Providers } from '@/components/Providers';
 import { TabNav } from '@/components/TabNav';
 import { LogoutButton } from '@/components/LogoutButton';
+import { buttonVariants } from '@/components/ui/button';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,7 +11,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="max-w-md w-full mx-auto flex flex-col flex-1 min-h-0">
           <header className="px-4 pt-6 pb-4 flex items-center justify-between">
             <h1 className="text-xl font-bold">10,000 Hours</h1>
-            <LogoutButton />
+            <div className="flex items-center gap-1">
+              <Link href="/account" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+                Account
+              </Link>
+              <LogoutButton />
+            </div>
           </header>
           <div className="px-4 pb-2">
             <TabNav />

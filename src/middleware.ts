@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySessionToken } from '@/lib/auth';
 
-const PROTECTED_ROUTES = ['/dashboard', '/sessions', '/rankings', '/timer'];
+const PROTECTED_ROUTES = ['/dashboard', '/sessions', '/rankings', '/timer', '/account'];
 const AUTH_ROUTES = ['/login'];
 
 export async function middleware(request: NextRequest) {
@@ -31,5 +31,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/dashboard/:path*', '/sessions/:path*', '/rankings/:path*', '/timer/:path*'],
+  matcher: ['/', '/login', '/dashboard/:path*', '/sessions/:path*', '/rankings/:path*', '/timer/:path*', '/account/:path*'],
 };
