@@ -3,88 +3,102 @@ import { signUp, addHabit } from './helpers';
 
 const HABIT_NAME = 'Piano Practice';
 
-test.describe('Countdown Timer', () => {
+test.describe('Unified Timer Start', () => {
   test.beforeEach(async ({ page }) => {
     await signUp(page);
     await addHabit(page, HABIT_NAME);
   });
 
-  test('clicking Start shows mode selection with Stopwatch and Countdown', async ({ page }) => {
+  test('clicking Start shows unified timer screen with toggle and Start button', async ({ page }) => {
     await page.getByRole('button', { name: /start/i }).click();
 
-    await expect(page.getByText('Stopwatch')).toBeVisible();
-    await expect(page.getByText('Countdown')).toBeVisible();
+    // Toggle options visible
+    await expect(page.getByRole('button', { name: 'Stopwatch' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Countdown' })).toBeVisible();
+
+    // Single Start button always visible
+    await expect(page.getByRole('button', { name: /^start$/i })).toBeVisible();
   });
 
-  test('selecting Stopwatch starts timer immediately', async ({ page }) => {
+  test('stopwatch mode hides duration options', async ({ page }) => {
     await page.getByRole('button', { name: /start/i }).click();
-    await page.getByText('Stopwatch').click();
 
-    // Should show the running stopwatch UI
-    await expect(page.getByText('Recording...')).toBeVisible();
-    await expect(page.getByText(/\d{2}:\d{2}:\d{2}/)).toBeVisible();
+    // Stopwatch is default — no duration presets visible
+    await expect(page.getByText('15m')).not.toBeVisible();
+    await expect(page.getByPlaceholder(/minutes/i)).not.toBeVisible();
   });
 
-  test('selecting Countdown shows duration presets and custom input', async ({ page }) => {
+  test('selecting Countdown shows duration presets with 25m default selected', async ({ page }) => {
     await page.getByRole('button', { name: /start/i }).click();
-    await page.getByText('Countdown').click();
+    await page.getByRole('button', { name: 'Countdown' }).click();
 
-    // Preset buttons
+    // Preset buttons visible
     await expect(page.getByText('15m')).toBeVisible();
     await expect(page.getByText('25m')).toBeVisible();
     await expect(page.getByText('30m')).toBeVisible();
     await expect(page.getByText('45m')).toBeVisible();
     await expect(page.getByText('60m')).toBeVisible();
 
-    // Custom minutes input
-    await expect(page.getByPlaceholder(/minutes/i)).toBeVisible();
+    // Custom input shows 25 (matching default selection)
+    await expect(page.getByPlaceholder(/minutes/i)).toHaveValue('25');
   });
 
-  test('selecting a preset and clicking Start begins countdown', async ({ page }) => {
+  test('clicking a preset updates the custom input to match', async ({ page }) => {
     await page.getByRole('button', { name: /start/i }).click();
-    await page.getByText('Countdown').click();
-    await page.getByText('25m').click();
-    await page.getByRole('button', { name: /start/i }).click();
+    await page.getByRole('button', { name: 'Countdown' }).click();
 
-    // Should show countdown time (25:00 or 24:59 depending on timing)
+    await page.getByText('45m').click();
+    await expect(page.getByPlaceholder(/minutes/i)).toHaveValue('45');
+  });
+
+  test('starting in stopwatch mode begins recording', async ({ page }) => {
+    await page.getByRole('button', { name: /start/i }).click();
+    // Stopwatch is default, just click Start
+    await page.getByRole('button', { name: /^start$/i }).click();
+
+    await expect(page.getByText('Recording...')).toBeVisible();
+    await expect(page.getByText(/\d{2}:\d{2}:\d{2}/)).toBeVisible();
+  });
+
+  test('starting in countdown mode begins countdown', async ({ page }) => {
+    await page.getByRole('button', { name: /start/i }).click();
+    await page.getByRole('button', { name: 'Countdown' }).click();
+    // 25m is default selected
+    await page.getByRole('button', { name: /^start$/i }).click();
+
     await expect(page.getByText(/2[45]:\d{2}/)).toBeVisible();
   });
 
-  test('entering custom minutes and clicking Start begins countdown', async ({ page }) => {
+  test('custom minutes starts correct countdown', async ({ page }) => {
     await page.getByRole('button', { name: /start/i }).click();
-    await page.getByText('Countdown').click();
+    await page.getByRole('button', { name: 'Countdown' }).click();
     await page.getByPlaceholder(/minutes/i).fill('10');
-    await page.getByRole('button', { name: /start/i }).click();
+    await page.getByRole('button', { name: /^start$/i }).click();
 
-    // Should show countdown time around 10:00
     await expect(page.getByText(/(?:10|09):\d{2}/)).toBeVisible();
   });
 
-  test('going back to dashboard shows remaining time on habit card', async ({ page }) => {
-    // Start a 25-minute countdown
+  test('Cancel returns to dashboard', async ({ page }) => {
     await page.getByRole('button', { name: /start/i }).click();
-    await page.getByText('Countdown').click();
-    await page.getByText('25m').click();
-    await page.getByRole('button', { name: /start/i }).click();
-
-    // Go back to dashboard
-    await page.getByText(/back/i).click();
-
-    // Habit card should show remaining countdown time
-    await expect(page.getByText(/2[45]:\d{2}/)).toBeVisible();
-  });
-
-  test('Cancel on mode selection returns to dashboard', async ({ page }) => {
-    await page.getByRole('button', { name: /start/i }).click();
-
-    // Verify we're on mode selection
-    await expect(page.getByText('Stopwatch')).toBeVisible();
-
-    // Cancel should return to dashboard
     await page.getByText('Cancel').click();
 
-    // Should be back on dashboard with the habit visible
     await expect(page.getByRole('heading', { name: '10,000 Hours' })).toBeVisible();
     await expect(page.getByText(HABIT_NAME)).toBeVisible();
+  });
+
+  test('remembers last used mode across sessions', async ({ page }) => {
+    // Start a countdown timer
+    await page.getByRole('button', { name: /start/i }).click();
+    await page.getByRole('button', { name: 'Countdown' }).click();
+    await page.getByText('45m').click();
+    await page.getByRole('button', { name: /^start$/i }).click();
+
+    // End session and go back
+    await page.getByRole('button', { name: /end session/i }).click();
+    await page.getByRole('button', { name: /back to habits/i }).click();
+
+    // Start again — should remember countdown mode with 45 min
+    await page.getByRole('button', { name: /start/i }).click();
+    await expect(page.getByPlaceholder(/minutes/i)).toHaveValue('45');
   });
 });

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
 import { PressableButton } from '@/components/ui/pressable-button';
 import { useHaptics } from '@/hooks/use-haptics';
+import { getTimerPreference, saveTimerPreference } from '@/lib/timer-preferences';
 
 type Props = {
   habitName: string;
@@ -12,116 +12,114 @@ type Props = {
 };
 
 const PRESETS = [
-  { label: '15m', seconds: 15 * 60 },
-  { label: '25m', seconds: 25 * 60 },
-  { label: '30m', seconds: 30 * 60 },
-  { label: '45m', seconds: 45 * 60 },
-  { label: '60m', seconds: 60 * 60 },
+  { label: '15m', minutes: 15 },
+  { label: '25m', minutes: 25 },
+  { label: '30m', minutes: 30 },
+  { label: '45m', minutes: 45 },
+  { label: '60m', minutes: 60 },
 ];
 
 export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
-  const [mode, setMode] = useState<'select' | 'countdown'>('select');
-  const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
-  const [customMinutes, setCustomMinutes] = useState('');
   const { trigger } = useHaptics();
+  const [mode, setMode] = useState<'stopwatch' | 'countdown'>('stopwatch');
+  const [minutes, setMinutes] = useState('25');
 
-  const selectedSeconds =
-    selectedPreset !== null
-      ? selectedPreset
-      : customMinutes !== ''
-        ? Math.max(1, Math.floor(Number(customMinutes))) * 60
-        : null;
+  useEffect(() => {
+    const pref = getTimerPreference();
+    setMode(pref.mode);
+    setMinutes(String(pref.durationMinutes));
+  }, []);
 
-  if (mode === 'select') {
-    return (
-      <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center px-4">
-        <h2 className="text-2xl font-bold mb-2">{habitName}</h2>
-        <p className="text-muted-foreground mb-8">Choose timer mode</p>
-
-        <div className="flex flex-col gap-3 w-full max-w-xs">
-          <PressableButton size="lg" className="w-full py-6 text-lg" onClick={() => { trigger('medium'); onStart(); }}>
-            Stopwatch
-          </PressableButton>
-          <Button
-            size="lg"
-            variant="outline"
-            className="w-full py-6 text-lg"
-            onClick={() => { trigger('light'); setMode('countdown'); }}
-          >
-            Countdown
-          </Button>
-        </div>
-
-        <button
-          onClick={onCancel}
-          className="mt-6 text-sm text-muted-foreground hover:text-foreground"
-        >
-          Cancel
-        </button>
-      </div>
-    );
+  function handleStart() {
+    trigger('medium');
+    const durationMinutes = Math.max(1, Math.floor(Number(minutes)));
+    saveTimerPreference({
+      mode,
+      durationMinutes: mode === 'countdown' ? durationMinutes : Number(minutes) || 25,
+    });
+    if (mode === 'stopwatch') {
+      onStart();
+    } else {
+      onStart(durationMinutes * 60);
+    }
   }
 
-  // Countdown mode
+  function handlePresetClick(presetMinutes: number) {
+    trigger('selection');
+    setMinutes(String(presetMinutes));
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center px-4">
       <h2 className="text-2xl font-bold mb-2">{habitName}</h2>
-      <p className="text-muted-foreground mb-8">Set countdown duration</p>
+      <p className="text-muted-foreground mb-8">Choose timer mode</p>
 
-      <div className="flex flex-wrap gap-2 justify-center mb-6">
-        {PRESETS.map((preset) => (
-          <button
-            key={preset.label}
-            onClick={() => {
-              trigger('selection');
-              setSelectedPreset(preset.seconds);
-              setCustomMinutes('');
-            }}
-            className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
-              selectedPreset === preset.seconds
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-background text-foreground border-border hover:bg-accent'
-            }`}
-          >
-            {preset.label}
-          </button>
-        ))}
+      {/* Toggle */}
+      <div className="flex w-full max-w-xs rounded-lg border border-border overflow-hidden mb-8">
+        <button
+          onClick={() => { trigger('light'); setMode('stopwatch'); }}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            mode === 'stopwatch'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-background text-foreground hover:bg-accent'
+          }`}
+        >
+          Stopwatch
+        </button>
+        <button
+          onClick={() => { trigger('light'); setMode('countdown'); }}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            mode === 'countdown'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-background text-foreground hover:bg-accent'
+          }`}
+        >
+          Countdown
+        </button>
       </div>
 
-      <input
-        type="number"
-        placeholder="Custom minutes"
-        value={customMinutes}
-        onChange={(e) => {
-          setCustomMinutes(e.target.value);
-          setSelectedPreset(null);
-        }}
-        className="w-full max-w-xs px-4 py-3 rounded-md border border-border bg-background text-center text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-primary"
-      />
+      {/* Duration options (countdown only) */}
+      {mode === 'countdown' && (
+        <>
+          <div className="flex flex-wrap gap-2 justify-center mb-6">
+            {PRESETS.map((preset) => (
+              <button
+                key={preset.label}
+                onClick={() => handlePresetClick(preset.minutes)}
+                className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
+                  Number(minutes) === preset.minutes
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background text-foreground border-border hover:bg-accent'
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
+          <input
+            type="number"
+            placeholder="Custom minutes"
+            value={minutes}
+            onChange={(e) => setMinutes(e.target.value)}
+            className="w-full max-w-xs px-4 py-3 rounded-md border border-border bg-background text-center text-lg mb-8 focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </>
+      )}
 
       <PressableButton
         size="lg"
         className="w-full max-w-xs py-6 text-lg"
-        disabled={selectedSeconds === null}
-        onClick={() => {
-          if (selectedSeconds !== null) {
-            trigger('medium');
-            onStart(selectedSeconds);
-          }
-        }}
+        onClick={handleStart}
       >
         Start
       </PressableButton>
 
       <button
-        onClick={() => {
-          setMode('select');
-          setSelectedPreset(null);
-          setCustomMinutes('');
-        }}
+        onClick={onCancel}
         className="mt-6 text-sm text-muted-foreground hover:text-foreground"
       >
-        Back
+        Cancel
       </button>
     </div>
   );
