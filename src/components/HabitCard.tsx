@@ -91,11 +91,10 @@ export function HabitCard({
         {isActive && (
           <p className="text-2xl font-mono text-primary">{elapsed}</p>
         )}
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>Today: {formatTime(habit.todaySeconds)}</span>
-          <span>
-            {habit.streak > 0 ? `🔥 ${habit.streak} day streak` : "No streak"}
-          </span>
+        <div className="text-sm text-muted-foreground">
+          <div>Today: {formatTime(habit.todaySeconds)}</div>
+          <div>Lifetime: {formatTime(habit.totalSeconds)}</div>
+          <div>{habit.streak > 0 ? `🔥 ${habit.streak} day streak` : "No streak"}</div>
         </div>
         {!isActive && (
           <div className="flex gap-2 mt-1">

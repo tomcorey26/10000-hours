@@ -10,11 +10,16 @@ export async function getHabitsForUser(userId: number) {
 
   return Promise.all(
     userHabits.map(async (habit) => {
-      const [todayResult, timer, streak] = await Promise.all([
+      const [todayResult, totalResult, timer, streak] = await Promise.all([
         db
           .select({ total: sql<number>`COALESCE(SUM(${timeSessions.durationSeconds}), 0)` })
           .from(timeSessions)
           .where(and(eq(timeSessions.habitId, habit.id), gte(timeSessions.endTime, todayStart)))
+          .get(),
+        db
+          .select({ total: sql<number>`COALESCE(SUM(${timeSessions.durationSeconds}), 0)` })
+          .from(timeSessions)
+          .where(eq(timeSessions.habitId, habit.id))
           .get(),
         db
           .select()
@@ -27,6 +32,7 @@ export async function getHabitsForUser(userId: number) {
       return {
         ...habit,
         todaySeconds: todayResult?.total ?? 0,
+        totalSeconds: totalResult?.total ?? 0,
         streak,
         activeTimer: timer
           ? { startTime: timer.startTime.toISOString(), targetDurationSeconds: timer.targetDurationSeconds ?? null }
