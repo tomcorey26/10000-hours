@@ -43,6 +43,7 @@ export function CountdownAutoStop() {
 
         toast.success(message);
         sendBrowserNotification('Session Complete', message);
+        try { new Audio('/fanfare.mp3').play().catch(() => {}); } catch {}
 
         queryClient.invalidateQueries({ queryKey: queryKeys.habits.all });
         queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all });
