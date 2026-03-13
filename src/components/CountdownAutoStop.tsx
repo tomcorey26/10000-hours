@@ -39,10 +39,10 @@ export function CountdownAutoStop() {
       stoppingRef.current = true;
       try {
         const result = await api<{ durationSeconds: number }>('/api/timer/stop', { method: 'POST' });
-        const message = `Your ${formatTime(result.durationSeconds)} ${active.name} session was recorded`;
+        const message = `🎉 Your ${formatTime(result.durationSeconds)} ${active.name} session was recorded`;
 
         toast.success(message);
-        sendBrowserNotification('Session Complete', message);
+        sendBrowserNotification('🎉 Session Complete', message);
         try { new Audio('/fanfare.mp3').play().catch(() => {}); } catch {}
 
         queryClient.invalidateQueries({ queryKey: queryKeys.habits.all });

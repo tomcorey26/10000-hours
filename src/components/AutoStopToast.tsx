@@ -22,7 +22,7 @@ export function AutoStopToast() {
     if (data?.autoStopped) {
       shown.current = true;
       toast.success(
-        `Your ${formatTime(data.autoStopped.durationSeconds)} ${data.autoStopped.habitName} session was auto-recorded`
+        `🎉 Your ${formatTime(data.autoStopped.durationSeconds)} ${data.autoStopped.habitName} session was auto-recorded`
       );
     }
   }, [queryClient]);
