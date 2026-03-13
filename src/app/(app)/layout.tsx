@@ -4,6 +4,7 @@ import { Providers } from '@/components/Providers';
 import { TabNav } from '@/components/TabNav';
 import { LogoutButton } from '@/components/LogoutButton';
 import { buttonVariants } from '@/components/ui/button';
+import { AutoStopToast } from '@/components/AutoStopToast';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,6 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </main>
         </div>
         <Toaster position="top-center" />
+        <AutoStopToast />
       </div>
     </Providers>
   );
