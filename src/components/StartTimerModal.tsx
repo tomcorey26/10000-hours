@@ -35,6 +35,10 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
       mode,
       durationMinutes: mode === 'countdown' ? durationMinutes : Number(minutes) || 25,
     });
+    if (mode === 'countdown' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     if (mode === 'stopwatch') {
       onStart();
     } else {
