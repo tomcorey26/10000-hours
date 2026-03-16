@@ -5,3 +5,4 @@
 - always run tests after your done so you dindt break any thing
 - always split new work into a worktree or branch outside of git
 - Follow engineering best practices for performant and seucre software
+- Write tests that test behavior over implementation details
