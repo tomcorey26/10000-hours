@@ -6,3 +6,15 @@
 - always split new work into a worktree or branch outside of git
 - Follow engineering best practices for performant and seucre software
 - Write tests that test behavior over implementation details
+
+Database
+
+- Always put database query logic inside of a function
+- Always keep business logic outside of the database functions to keep it reusable and organized
+- Use transactions for atomicitiy, be weary of concurrency race conditions
+
+API endpoints
+Todo:
+
+- Input is sanitized
+- Error handling is correct with correct response codes
