@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PressableButton } from "@/components/ui/pressable-button";
 import { formatTime, formatElapsed, formatRemaining } from "@/lib/format";
@@ -24,15 +24,13 @@ const BUBBLE_EMOJIS = [
 ];
 
 function EmojiBubbles() {
-  const bubbles = useMemo(() => {
-    return Array.from({ length: 14 }, (_, i) => ({
-      emoji: BUBBLE_EMOJIS[i % BUBBLE_EMOJIS.length],
-      left: `${5 + ((i * 7) % 90)}%`,
-      duration: 2.5 + (i % 4) * 0.6,
-      delay: (i % 7) * 0.4,
-      size: 1.2 + (i % 3) * 0.5,
-    }));
-  }, []);
+  const bubbles = Array.from({ length: 14 }, (_, i) => ({
+    emoji: BUBBLE_EMOJIS[i % BUBBLE_EMOJIS.length],
+    left: `${5 + ((i * 7) % 90)}%`,
+    duration: 2.5 + (i % 4) * 0.6,
+    delay: (i % 7) * 0.4,
+    size: 1.2 + (i % 3) * 0.5,
+  }));
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -104,9 +102,13 @@ export function TimerView({
         });
         playFanfare();
         trigger("buzz");
-        if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+        if (
+          document.hidden &&
+          "Notification" in window &&
+          Notification.permission === "granted"
+        ) {
           try {
-            new Notification('🎉 Session Complete', {
+            new Notification("🎉 Session Complete", {
               body: `Your ${formatTime(data.durationSeconds)} ${habitName} session was recorded`,
             });
           } catch {}
@@ -123,7 +125,10 @@ export function TimerView({
     const interval = setInterval(() => {
       if (isCountdown) {
         setDisplay(formatRemaining(startTime, targetDurationSeconds));
-        if (!stoppedRef.current && isCountdownComplete(startTime, targetDurationSeconds)) {
+        if (
+          !stoppedRef.current &&
+          isCountdownComplete(startTime, targetDurationSeconds)
+        ) {
           stoppedRef.current = true;
           handleStop();
         }
@@ -132,7 +137,7 @@ export function TimerView({
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [startTime, targetDurationSeconds, isCountdown]);
+  }, [startTime, targetDurationSeconds, isCountdown, handleStop]);
 
   useEffect(() => {
     const prev = document.title;

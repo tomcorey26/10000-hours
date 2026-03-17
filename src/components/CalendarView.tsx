@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,22 +25,16 @@ export function CalendarView({ sessions, habits }: Props) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // Build a map: habitId -> index (for color assignment)
-  const habitIndexMap = useMemo(() => {
-    const map = new Map<number, number>();
-    habits.forEach((h, i) => map.set(h.id, i));
-    return map;
-  }, [habits]);
+  const habitIndexMap = new Map<number, number>();
+  habits.forEach((h, i) => habitIndexMap.set(h.id, i));
 
   // Group sessions by date key
-  const sessionsByDate = useMemo(() => {
-    const map = new Map<string, Session[]>();
-    for (const s of sessions) {
-      const key = isoToDateKey(s.endTime);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(s);
-    }
-    return map;
-  }, [sessions]);
+  const sessionsByDate = new Map<string, Session[]>();
+  for (const s of sessions) {
+    const key = isoToDateKey(s.endTime);
+    if (!sessionsByDate.has(key)) sessionsByDate.set(key, []);
+    sessionsByDate.get(key)!.push(s);
+  }
 
   // Get unique habit IDs for a given date (for rendering dots)
   function getHabitIdsForDate(dateKey: string): number[] {

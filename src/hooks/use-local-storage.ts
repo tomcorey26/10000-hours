@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
 export function useLocalStorage<T>(
   key: string,
@@ -16,16 +16,13 @@ export function useLocalStorage<T>(
     }
   });
 
-  const setValue = useCallback(
-    (value: T | ((prev: T) => T)) => {
-      setStoredValue((prev) => {
-        const next = value instanceof Function ? value(prev) : value;
-        localStorage.setItem(key, JSON.stringify(next));
-        return next;
-      });
-    },
-    [key],
-  );
+  function setValue(value: T | ((prev: T) => T)) {
+    setStoredValue((prev) => {
+      const next = value instanceof Function ? value(prev) : value;
+      localStorage.setItem(key, JSON.stringify(next));
+      return next;
+    });
+  }
 
   return [storedValue, setValue];
 }
