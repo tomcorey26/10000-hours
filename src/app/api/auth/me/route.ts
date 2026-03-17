@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/auth";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { getUserById } from "@/server/db/users";
 
 export async function GET() {
   const userId = await getSessionUserId();
@@ -10,11 +8,7 @@ export async function GET() {
     return NextResponse.json({ user: null }, { status: 401 });
   }
 
-  const user = await db
-    .select({ id: users.id, email: users.email })
-    .from(users)
-    .where(eq(users.id, userId))
-    .get();
+  const user = await getUserById(userId);
   if (!user) {
     return NextResponse.json({ user: null }, { status: 401 });
   }

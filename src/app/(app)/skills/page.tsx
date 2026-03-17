@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
 import { getSessionUserId } from "@/lib/auth";
-import { getHabitsForUser, autoStopExpiredCountdown } from "@/lib/queries";
 import { parseAutoStoppedSearchParams } from "@/lib/auto-stop-search-params";
 import { Dashboard } from "@/components/Dashboard";
 import { AutoStopToastTrigger } from "@/components/AutoStopToast";
 import { Suspense } from "react";
 import { Spinner } from "@/components/Spinner";
+import { getHabitsForUser } from "@/server/db/habits";
+import { autoStopExpiredCountdown } from "@/server/db/timers";
 
 type Props = {
   searchParams: Promise<{ autoStopped?: string; duration?: string }>;

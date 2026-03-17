@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/db";
-import { users } from "@/db/schema";
 import { verifyPassword, setSessionCookie } from "@/lib/auth";
-import { eq } from "drizzle-orm";
+import { getUserByEmail } from "@/server/db/users";
 
 const loginSchema = z.object({
   email: z.email(),
@@ -24,11 +22,7 @@ export async function POST(request: Request) {
 
   const { email, password } = parsed.data;
 
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .get();
+  const user = await getUserByEmail(email);
   if (!user) {
     return NextResponse.json(
       { error: "Invalid email or password" },
