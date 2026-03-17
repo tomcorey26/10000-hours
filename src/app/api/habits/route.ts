@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { habits } from '@/db/schema';
 import { getSessionUserId } from '@/lib/auth';
-import { getHabitsForUser } from '@/lib/queries';
+import { getHabitsForUser, autoStopExpiredCountdown } from '@/lib/queries';
 
 const createHabitSchema = z.object({
   name: z.string().min(1).max(100),
@@ -13,8 +13,9 @@ export async function GET() {
   const userId = await getSessionUserId();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const autoStopped = await autoStopExpiredCountdown(userId);
   const habitsWithStats = await getHabitsForUser(userId);
-  return NextResponse.json({ habits: habitsWithStats });
+  return NextResponse.json({ habits: habitsWithStats, autoStopped });
 }
 
 export async function POST(request: Request) {

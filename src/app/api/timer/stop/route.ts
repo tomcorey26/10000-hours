@@ -1,30 +1,33 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { activeTimers, timeSessions } from '@/db/schema';
-import { getSessionUserId } from '@/lib/auth';
-import { eq } from 'drizzle-orm';
+import { NextResponse } from "next/server";
+import { db } from "@/db";
+import { activeTimers, timeSessions } from "@/db/schema";
+import { getSessionUserId } from "@/lib/auth";
+import { eq } from "drizzle-orm";
+import { buildSessionFromTimer } from "@/lib/auto-stop-timer";
 
 export async function POST() {
   const userId = await getSessionUserId();
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const timer = await db.select().from(activeTimers).where(eq(activeTimers.userId, userId)).get();
-  if (!timer) return NextResponse.json({ error: 'No active timer' }, { status: 404 });
+  const stoppedTimer = await db.transaction(async (tx) => {
+    const timer = await tx
+      .select()
+      .from(activeTimers)
+      .where(eq(activeTimers.userId, userId))
+      .get();
+    if (!timer) return null;
 
-  const now = new Date();
-  const durationSeconds = Math.round((now.getTime() - timer.startTime.getTime()) / 1000);
-  const timerMode = timer.targetDurationSeconds !== null ? 'countdown' : 'stopwatch';
+    const session = buildSessionFromTimer(timer, new Date());
 
-  await db.transaction(async (tx) => {
-    await tx.insert(timeSessions).values({
-      habitId: timer.habitId,
-      startTime: timer.startTime,
-      endTime: now,
-      durationSeconds,
-      timerMode,
-    });
+    await tx.insert(timeSessions).values(session);
     await tx.delete(activeTimers).where(eq(activeTimers.userId, userId));
+
+    return { durationSeconds: session.durationSeconds, habitId: timer.habitId };
   });
 
-  return NextResponse.json({ durationSeconds, habitId: timer.habitId });
+  if (!stoppedTimer)
+    return NextResponse.json({ error: "No active timer" }, { status: 404 });
+
+  return NextResponse.json(stoppedTimer);
 }

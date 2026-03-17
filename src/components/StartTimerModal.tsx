@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { PressableButton } from '@/components/ui/pressable-button';
+import { DurationInput } from '@/components/DurationInput';
 import { useHaptics } from '@/hooks/use-haptics';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import type { TimerPreference } from '@/lib/timer-preferences';
@@ -20,31 +21,40 @@ const PRESETS = [
   { label: '60m', minutes: 60 },
 ];
 
-const DEFAULT_PREF: TimerPreference = { mode: 'stopwatch', durationMinutes: 25 };
+const DEFAULT_PREF: TimerPreference = { mode: 'stopwatch', durationMinutes: 25, durationSeconds: 0 };
 
 export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
   const { trigger } = useHaptics();
   const [pref, setPref] = useLocalStorage<TimerPreference>('timer-mode-preference', DEFAULT_PREF);
   const [mode, setMode] = useState<'stopwatch' | 'countdown'>(pref.mode);
-  const [minutes, setMinutes] = useState(String(pref.durationMinutes));
+  const [minutes, setMinutes] = useState(pref.durationMinutes);
+  const [seconds, setSeconds] = useState(pref.durationSeconds ?? 0);
+  const [inputKey, setInputKey] = useState(0);
 
   function handleStart() {
     trigger('medium');
-    const durationMinutes = Math.max(1, Math.floor(Number(minutes)));
+    const totalSeconds = minutes * 60 + seconds;
     setPref({
       mode,
-      durationMinutes: mode === 'countdown' ? durationMinutes : Number(minutes) || 25,
+      durationMinutes: minutes,
+      durationSeconds: seconds,
     });
+    if (mode === 'countdown' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     if (mode === 'stopwatch') {
       onStart();
     } else {
-      onStart(durationMinutes * 60);
+      onStart(totalSeconds);
     }
   }
 
   function handlePresetClick(presetMinutes: number) {
     trigger('selection');
-    setMinutes(String(presetMinutes));
+    setMinutes(presetMinutes);
+    setSeconds(0);
+    setInputKey((k) => k + 1);
   }
 
   return (
@@ -85,7 +95,7 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
                 key={preset.label}
                 onClick={() => handlePresetClick(preset.minutes)}
                 className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
-                  Number(minutes) === preset.minutes
+                  minutes === preset.minutes && seconds === 0
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-background text-foreground border-border hover:bg-accent'
                 }`}
@@ -95,13 +105,17 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
             ))}
           </div>
 
-          <input
-            type="number"
-            placeholder="Custom minutes"
-            value={minutes}
-            onChange={(e) => setMinutes(e.target.value)}
-            className="w-full max-w-xs px-4 py-3 rounded-md border border-border bg-background text-center text-lg mb-8 focus:outline-none focus:ring-2 focus:ring-primary"
-          />
+          <div className="mb-8">
+            <DurationInput
+              key={inputKey}
+              minutes={minutes}
+              seconds={seconds}
+              onChange={({ minutes: m, seconds: s }) => {
+                setMinutes(m);
+                setSeconds(s);
+              }}
+            />
+          </div>
         </>
       )}
 
@@ -109,9 +123,13 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
         size="lg"
         className="w-full max-w-xs py-6 text-lg"
         onClick={handleStart}
+        disabled={mode === 'countdown' && minutes === 0 && seconds === 0}
       >
         Start
       </PressableButton>
+      {mode === 'countdown' && minutes === 0 && seconds === 0 && (
+        <p className="text-sm text-muted-foreground mt-2">Set a duration to start</p>
+      )}
 
       <button
         onClick={onCancel}

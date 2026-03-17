@@ -3,12 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PressableButton } from "@/components/ui/pressable-button";
-import {
-  formatTime,
-  formatElapsed,
-  formatRemaining,
-  isCountdownComplete,
-} from "@/lib/format";
+import { formatTime, formatElapsed, formatRemaining } from "@/lib/format";
+import { isCountdownComplete } from "@/lib/timer";
 import { getRandomCongratsMessage } from "@/lib/congrats-messages";
 import { useStopTimer } from "@/hooks/use-habits";
 import { useHaptics } from "@/hooks/use-haptics";
@@ -90,11 +86,7 @@ export function TimerView({
       ? formatRemaining(startTime, targetDurationSeconds)
       : formatElapsed(startTime),
   );
-  const [finished, setFinished] = useState(() =>
-    isCountdown ? isCountdownComplete(startTime, targetDurationSeconds) : false,
-  );
-  const autoStopTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  const stoppedRef = useRef(false);
   const [successData, setSuccessData] = useState<{
     durationSeconds: number;
     message: string;
@@ -110,6 +102,17 @@ export function TimerView({
         });
         playFanfare();
         trigger("buzz");
+        if (
+          document.hidden &&
+          "Notification" in window &&
+          Notification.permission === "granted"
+        ) {
+          try {
+            new Notification("🎉 Session Complete", {
+              body: `Your ${formatTime(data.durationSeconds)} ${habitName} session was recorded`,
+            });
+          } catch {}
+        }
       },
     });
   }
@@ -122,15 +125,19 @@ export function TimerView({
     const interval = setInterval(() => {
       if (isCountdown) {
         setDisplay(formatRemaining(startTime, targetDurationSeconds));
-        if (isCountdownComplete(startTime, targetDurationSeconds)) {
-          setFinished(true);
+        if (
+          !stoppedRef.current &&
+          isCountdownComplete(startTime, targetDurationSeconds)
+        ) {
+          stoppedRef.current = true;
+          handleStop();
         }
       } else {
         setDisplay(formatElapsed(startTime));
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [startTime, targetDurationSeconds, isCountdown]);
+  }, [startTime, targetDurationSeconds, isCountdown, handleStop]);
 
   useEffect(() => {
     const prev = document.title;
@@ -139,29 +146,6 @@ export function TimerView({
       document.title = prev;
     };
   }, [display, habitName]);
-
-  useEffect(() => {
-    if (!finished) return;
-
-    trigger("buzz");
-
-    try {
-      const audio = new Audio("/alarm.mp3");
-      audio.play().catch(() => {});
-    } catch {
-      // Ignore audio errors
-    }
-
-    autoStopTimeout.current = setTimeout(() => {
-      handleStop();
-    }, 2000);
-
-    return () => {
-      if (autoStopTimeout.current) {
-        clearTimeout(autoStopTimeout.current);
-      }
-    };
-  }, [finished]);
 
   if (successData) {
     return (
@@ -204,7 +188,7 @@ export function TimerView({
           {display}
         </p>
         <div className="flex items-center gap-2 mb-12">
-          {finished ? (
+          {isCountdown && display === "00:00:00" ? (
             <span className="text-sm font-semibold text-primary">
               Time&apos;s up!
             </span>

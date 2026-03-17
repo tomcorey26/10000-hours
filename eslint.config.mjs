@@ -8,7 +8,10 @@ const eslintConfig = defineConfig([
   ...nextTs,
   {
     plugins: { "react-compiler": reactCompiler },
-    rules: { "react-compiler/react-compiler": "error" },
+    rules: {
+      "react-compiler/react-compiler": "error",
+      "react-hooks/exhaustive-deps": "off",
+    },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([

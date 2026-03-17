@@ -1,6 +1,44 @@
 import { db } from '@/db';
 import { habits, timeSessions, activeTimers } from '@/db/schema';
 import { eq, and, gte, desc, sql } from 'drizzle-orm';
+import { buildSessionFromTimer } from '@/lib/auto-stop-timer';
+
+export type AutoStoppedSession = {
+  habitName: string;
+  durationSeconds: number;
+};
+
+/** Check for expired countdown timers and auto-record them. */
+export async function autoStopExpiredCountdown(userId: number): Promise<AutoStoppedSession | null> {
+  return db.transaction(async (tx) => {
+    const timer = await tx
+      .select()
+      .from(activeTimers)
+      .where(eq(activeTimers.userId, userId))
+      .get();
+
+    if (!timer || timer.targetDurationSeconds === null) return null;
+
+    const elapsed = Math.round((Date.now() - timer.startTime.getTime()) / 1000);
+    if (elapsed < timer.targetDurationSeconds) return null;
+
+    const session = buildSessionFromTimer(timer, new Date());
+
+    const habit = await tx
+      .select({ name: habits.name })
+      .from(habits)
+      .where(eq(habits.id, timer.habitId))
+      .get();
+
+    await tx.insert(timeSessions).values(session);
+    await tx.delete(activeTimers).where(eq(activeTimers.userId, userId));
+
+    return {
+      habitName: habit?.name ?? "Unknown",
+      durationSeconds: session.durationSeconds,
+    };
+  });
+}
 
 export async function getHabitsForUser(userId: number) {
   const todayStart = new Date();
