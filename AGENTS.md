@@ -34,3 +34,7 @@ Coolify setup
 - Have persistent volume setup for SQL lite, so that on redeploy our db file does not get lost
 - Locally (you, the developer): change schema → npm run db:generate → commit the migration files
 - Prod (Coolify): drizzle-kit migrate runs the migration files at startup
+
+UI
+
+- Utilize shadcn, and some kind of reusable component library template (shipfast?) for spinning up apps quick
