@@ -18,6 +18,7 @@ export const habits = sqliteTable('habits', {
 export const timeSessions = sqliteTable('time_sessions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   habitId: integer('habit_id').notNull().references(() => habits.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   startTime: integer('start_time', { mode: 'timestamp' }).notNull(),
   endTime: integer('end_time', { mode: 'timestamp' }).notNull(),
   durationSeconds: integer('duration_seconds').notNull(),
@@ -45,6 +46,7 @@ export const habitsRelations = relations(habits, ({ one, many }) => ({
 
 export const timeSessionsRelations = relations(timeSessions, ({ one }) => ({
   habit: one(habits, { fields: [timeSessions.habitId], references: [habits.id] }),
+  user: one(users, { fields: [timeSessions.userId], references: [users.id] }),
 }));
 
 export const activeTimersRelations = relations(activeTimers, ({ one }) => ({

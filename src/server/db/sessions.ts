@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 
 import { db } from "@/db";
 import { habits, timeSessions } from "@/db/schema";
@@ -74,6 +74,7 @@ export async function createManualSessionForUser({
     .insert(timeSessions)
     .values({
       habitId,
+      userId,
       startTime,
       endTime,
       durationSeconds,
@@ -88,23 +89,10 @@ export async function deleteSessionForUser(
   sessionId: number,
   userId: number,
 ) {
-  const userHabitIds = await db
-    .select({ id: habits.id })
-    .from(habits)
-    .where(eq(habits.userId, userId));
-
-  if (userHabitIds.length === 0) return null;
-
   const [deleted] = await db
     .delete(timeSessions)
     .where(
-      and(
-        eq(timeSessions.id, sessionId),
-        inArray(
-          timeSessions.habitId,
-          userHabitIds.map((h) => h.id),
-        ),
-      ),
+      and(eq(timeSessions.id, sessionId), eq(timeSessions.userId, userId)),
     )
     .returning();
 

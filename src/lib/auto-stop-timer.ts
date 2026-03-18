@@ -2,6 +2,7 @@ import { computeSessionDuration } from "@/lib/timer";
 
 type TimerData = {
   habitId: number;
+  userId: number;
   startTime: Date;
   targetDurationSeconds: number | null;
 };
@@ -19,6 +20,7 @@ export function buildSessionFromTimer(timer: TimerData, now: Date) {
 
   return {
     habitId: timer.habitId,
+    userId: timer.userId,
     startTime: timer.startTime,
     endTime: now,
     durationSeconds,

@@ -4,6 +4,7 @@ import { buildSessionFromTimer } from "./auto-stop-timer";
 describe("buildSessionFromTimer", () => {
   const baseTimer = {
     habitId: 1,
+    userId: 42,
     startTime: new Date("2026-03-13T10:00:00Z"),
     targetDurationSeconds: 300,
   };
@@ -30,6 +31,7 @@ describe("buildSessionFromTimer", () => {
     const result = buildSessionFromTimer(baseTimer, now);
     expect(result).toEqual({
       habitId: 1,
+      userId: 42,
       startTime: baseTimer.startTime,
       endTime: now,
       durationSeconds: 300,
