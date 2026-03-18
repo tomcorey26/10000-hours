@@ -27,3 +27,10 @@ Testing
 - Api route testing with???
 
 - After completeing a PR, always add what was learned here
+
+Coolify setup
+
+- DB
+- Have persistent volume setup for SQL lite, so that on redeploy our db file does not get lost
+- Locally (you, the developer): change schema → npm run db:generate → commit the migration files
+- Prod (Coolify): drizzle-kit migrate runs the migration files at startup
