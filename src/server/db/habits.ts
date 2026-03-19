@@ -11,7 +11,8 @@ export async function getHabitsForUser(userId: number): Promise<Habit[]> {
   const userHabits = await db
     .select({ id: habits.id, name: habits.name })
     .from(habits)
-    .where(eq(habits.userId, userId));
+    .where(eq(habits.userId, userId))
+    .orderBy(sql`COALESCE((SELECT MAX(${timeSessions.endTime}) FROM ${timeSessions} WHERE ${timeSessions.habitId} = ${habits.id}), ${habits.createdAt}) DESC`);
 
   return Promise.all(
     userHabits.map(async (habit) => {

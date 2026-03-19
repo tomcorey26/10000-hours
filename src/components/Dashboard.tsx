@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { HabitCard } from "@/components/HabitCard";
 import { AddHabitForm } from "@/components/AddHabitForm";
 import { StartTimerModal } from "@/components/StartTimerModal";
@@ -155,17 +156,26 @@ export function Dashboard({ initialHabits }: { initialHabits: Habit[] }) {
               />
             </div>
           )}
-          {habits
-            .filter((h) => !h.activeTimer)
-            .map((habit) => (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                onStart={handleStartClick}
-                onDelete={handleDelete}
-                onLog={handleLogClick}
-              />
-            ))}
+          <AnimatePresence initial={false}>
+            {habits
+              .filter((h) => !h.activeTimer)
+              .map((habit) => (
+                <motion.div
+                  key={habit.id}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <HabitCard
+                    habit={habit}
+                    onStart={handleStartClick}
+                    onDelete={handleDelete}
+                    onLog={handleLogClick}
+                  />
+                </motion.div>
+              ))}
+          </AnimatePresence>
         </div>
       )}
     </>
