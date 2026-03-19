@@ -53,7 +53,7 @@ On `POST /api/sessions`:
 1. **Duration bounds**: Reject if `durationMinutes < 1` or `durationMinutes > 720`.
 2. **Start time required**: `startTime` (`HH:mm`) and `tzOffset` (integer) are required fields for manual sessions.
 3. **Overlap check**: Query existing sessions for the user on the given date. Exclude noon-placeholder manual sessions. If the proposed `[startTime, endTime)` overlaps any remaining session (any habit), return 409 Conflict with details of the conflicting session.
-4. **Active timer check**: If the user has an active timer (in `activeTimers` table) whose start time falls within the proposed session's range, return 409 Conflict.
+4. **Active timer check**: If the user has an active timer (in `activeTimers` table) whose start time is before the proposed session's end time, treat the timer as unbounded (still running) and return 409 Conflict. A past session that ends before the active timer's start time is allowed.
 5. **Midnight boundary**: Reject if computed end time crosses into the next day.
 
 ### Schema
@@ -64,7 +64,8 @@ No schema migration needed. The `timeSessions` table already has `startTime` and
 
 #### `GET /api/sessions` — new query param
 
-- `date` (optional, `YYYY-MM-DD`): Return sessions where `startTime` falls on that date (i.e., `startTime >= day_start AND startTime < next_day_start`, computed using the requesting user's timezone). Used by the modal to fetch data for overlap checking.
+- `date` (optional, `YYYY-MM-DD`): Return sessions where `startTime` falls on that date (i.e., `startTime >= day_start AND startTime < next_day_start`).
+- `tzOffset` (required when `date` is provided, integer): UTC offset in minutes from client. Used to compute day boundaries in the user's local timezone.
 
 #### `POST /api/sessions` — updated body
 
@@ -117,5 +118,5 @@ Returns 409 if overlap detected:
 | Two sessions back-to-back (end == start) | Allowed — intervals are `[start, end)`, so no overlap |
 | User changes date after entering time/duration | Re-fetch sessions for new date, re-validate |
 | Existing manual sessions with noon placeholder | Excluded from overlap checks (detected by noon-start pattern). Remain as-is in DB. |
-| Active timer running | 409 if proposed session overlaps with active timer's time range |
+| Active timer running | 409 if active timer started before proposed session ends (timer is unbounded). Past sessions ending before the timer's start are allowed. |
 | Start time and duration not yet filled | Computed end time hidden, Save disabled |
