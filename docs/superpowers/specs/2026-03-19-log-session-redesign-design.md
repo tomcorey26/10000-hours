@@ -40,7 +40,7 @@ The server constructs timestamps using the offset: `2026-03-19T14:00:00-04:00`. 
 
 1. When user selects a date, fetch all sessions for that day across all habits via `GET /api/sessions?date=YYYY-MM-DD`.
 2. On any change to start time or duration, compute the proposed interval `[startTime, startTime + duration)`.
-3. Check against fetched sessions for overlap. **Exclude old manual sessions that have the noon placeholder pattern** (where `startTime` equals date at 12:00:00 and `endTime` equals `startTime + durationSeconds`) — these don't represent real time ranges.
+3. Check against fetched sessions for overlap. **Exclude old manual sessions that have the midnight placeholder pattern** (where `startTime` equals date at 00:00:00 UTC and `endTime` equals `startTime + durationSeconds`) — these don't represent real time ranges.
 4. If overlap found, display inline error: *"Overlaps with [Habit Name] from 2:00 PM – 4:00 PM"* and disable Save button.
 5. If session would extend past midnight (11:59 PM), display: *"Session cannot extend past midnight"* and disable Save.
 
@@ -52,13 +52,13 @@ On `POST /api/sessions`:
 
 1. **Duration bounds**: Reject if `durationMinutes < 1` or `durationMinutes > 720`.
 2. **Start time required**: `startTime` (`HH:mm`) and `tzOffset` (integer) are required fields for manual sessions.
-3. **Overlap check**: Query existing sessions for the user on the given date. Exclude noon-placeholder manual sessions. If the proposed `[startTime, endTime)` overlaps any remaining session (any habit), return 409 Conflict with details of the conflicting session.
+3. **Overlap check**: Query existing sessions for the user on the given date. Exclude midnight-placeholder manual sessions. If the proposed `[startTime, endTime)` overlaps any remaining session (any habit), return 409 Conflict with details of the conflicting session.
 4. **Active timer check**: If the user has an active timer (in `activeTimers` table) whose start time is before the proposed session's end time, treat the timer as unbounded (still running) and return 409 Conflict. A past session that ends before the active timer's start time is allowed.
 5. **Midnight boundary**: Reject if computed end time crosses into the next day.
 
 ### Schema
 
-No schema migration needed. The `timeSessions` table already has `startTime` and `endTime` (timestamp columns). Currently, manual sessions store a noon placeholder — they will now store real values derived from the user's date + start time + duration.
+No schema migration needed. The `timeSessions` table already has `startTime` and `endTime` (timestamp columns). Currently, manual sessions store a midnight placeholder — they will now store real values derived from the user's date + start time + duration.
 
 ### API Changes
 
@@ -117,6 +117,6 @@ Returns 409 if overlap detected:
 | Duration bleeds past midnight | Error: "Session cannot extend past midnight" |
 | Two sessions back-to-back (end == start) | Allowed — intervals are `[start, end)`, so no overlap |
 | User changes date after entering time/duration | Re-fetch sessions for new date, re-validate |
-| Existing manual sessions with noon placeholder | Excluded from overlap checks (detected by noon-start pattern). Remain as-is in DB. |
+| Existing manual sessions with midnight placeholder | Excluded from overlap checks (detected by midnight-start pattern via `getUTCHours() === 0`). Remain as-is in DB. |
 | Active timer running | 409 if active timer started before proposed session ends (timer is unbounded). Past sessions ending before the timer's start are allowed. |
 | Start time and duration not yet filled | Computed end time hidden, Save disabled |
