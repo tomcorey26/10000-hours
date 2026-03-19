@@ -28,8 +28,9 @@ Database
 API endpoints
 Todo:
 
-- Input is sanitized
+- Input is sanitized via zod
 - Error handling is correct with correct response codes
+- Security with rate limiting
 
 Testing
 
@@ -52,3 +53,7 @@ Devops setup
 UI
 
 - Utilize shadcn, and some kind of reusable component library template (shipfast?) for spinning up apps quick
+- Utilize truncation and character limits to prevent user from inputing long names and breaking layout
+- Paginate long lists of items
+- Make sure there is a 404 not found page
+- Make sure the app has an icon

@@ -13,14 +13,14 @@ export default async function TimerPage() {
   const habits = await getHabitsForUser(userId);
   const activeHabit = habits.find((h) => h.activeTimer);
 
-  // No active timer — redirect back to skills
+  // No active timer — redirect back to habits
   if (!activeHabit) {
     if (autoStopped) {
       redirect(
-        `/skills?autoStopped=${encodeURIComponent(autoStopped.habitName)}&duration=${autoStopped.durationSeconds}`,
+        `/habits?autoStopped=${encodeURIComponent(autoStopped.habitName)}&duration=${autoStopped.durationSeconds}`,
       );
     }
-    redirect("/skills");
+    redirect("/habits");
   }
 
   return (

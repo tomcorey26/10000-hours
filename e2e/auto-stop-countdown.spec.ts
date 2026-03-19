@@ -60,7 +60,7 @@ test.describe('Countdown Auto-Stop', () => {
     await expect(page.getByText('Counting down...')).toBeVisible();
 
     // Navigate away before countdown finishes
-    await page.goto('/skills');
+    await page.goto('/habits');
 
     // Wait for the countdown to expire and CountdownAutoStop to fire
     await expect(page.locator('[data-sonner-toast]').first()).toBeVisible({ timeout: 10000 });
@@ -75,7 +75,7 @@ test.describe('Countdown Auto-Stop', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to skills — server should auto-stop and show toast
-    await page.goto('/skills');
+    await page.goto('/habits');
 
     await expect(page.locator('[data-sonner-toast]').first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator('[data-sonner-toast]').first()).toContainText('auto-recorded');

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySessionToken } from '@/lib/auth';
 
-const PROTECTED_ROUTES = ['/skills', '/sessions', '/rankings', '/timer', '/account'];
+const PROTECTED_ROUTES = ['/habits', '/sessions', '/rankings', '/timer', '/account'];
 const AUTH_ROUTES = ['/login'];
 
 export async function middleware(request: NextRequest) {
@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from /login and /
   if (session && (AUTH_ROUTES.includes(pathname) || pathname === '/')) {
-    return NextResponse.redirect(new URL('/skills', request.url));
+    return NextResponse.redirect(new URL('/habits', request.url));
   }
 
   // Redirect / to /login for unauthenticated
@@ -31,5 +31,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/skills/:path*', '/sessions/:path*', '/rankings/:path*', '/timer/:path*', '/account/:path*'],
+  matcher: ['/', '/login', '/habits/:path*', '/sessions/:path*', '/rankings/:path*', '/timer/:path*', '/account/:path*'],
 };

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useHaptics } from '@/hooks/use-haptics';
 
 const TABS = [
-  { href: '/skills', label: 'Skills' },
+  { href: '/habits', label: 'Habits' },
   { href: '/sessions', label: 'Sessions' },
   { href: '/rankings', label: 'Rankings' },
 ];

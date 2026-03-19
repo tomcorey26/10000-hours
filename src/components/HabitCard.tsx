@@ -56,12 +56,18 @@ export function HabitCard({
     <Card
       className={`transition-all ${isActive ? "ring-2 ring-primary animate-pulse-subtle" : ""}`}
     >
-      <CardContent className="p-4 flex flex-col gap-2">
+      <CardContent className="p-4 flex flex-col gap-3">
+        {/* Row 1: name + delete */}
         <div className="flex items-center justify-between min-w-0">
-          <h3 className="font-semibold text-lg truncate min-w-0">{habit.name}</h3>
+          <h3 className="font-semibold text-lg truncate min-w-0">
+            {habit.name}
+          </h3>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <button className="text-muted-foreground hover:text-destructive transition-colors" aria-label="Delete habit">
+              <button
+                className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                aria-label="Delete habit"
+              >
                 <Trash2 className="h-4 w-4" />
               </button>
             </AlertDialogTrigger>
@@ -89,16 +95,32 @@ export function HabitCard({
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
+        {/* Stats */}
+        <div className="flex flex-col">
+          <p className="text-xs text-muted-foreground">
+            <span className="text-sm font-semibold text-primary">
+              {formatTime(habit.todaySeconds)}
+            </span>{" "}
+            today
+          </p>
+          <p className="text-xs text-muted-foreground">
+            <span className="text-sm font-semibold text-foreground">
+              {formatTime(habit.totalSeconds)}
+            </span>{" "}
+            lifetime
+            {habit.streak > 0 && <span> · 🔥 {habit.streak}d streak</span>}
+          </p>
+        </div>
+
+        {/* Active timer */}
         {isActive && (
           <p className="text-2xl font-mono text-primary">{elapsed}</p>
         )}
-        <div className="text-sm text-muted-foreground">
-          <div>Today: {formatTime(habit.todaySeconds)}</div>
-          <div>Lifetime: {formatTime(habit.totalSeconds)}</div>
-          <div>{habit.streak > 0 ? `🔥 ${habit.streak} day streak` : "No streak"}</div>
-        </div>
+
+        {/* Actions */}
         {!isActive && (
-          <div className="flex gap-2 mt-1">
+          <div className="flex gap-2">
             <Button
               onClick={() => {
                 trigger("medium");

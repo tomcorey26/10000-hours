@@ -52,7 +52,7 @@ export function AuthForm() {
     mutation.mutate(data, {
       onSuccess: () => {
         trigger('success');
-        router.push('/skills');
+        router.push('/habits');
       },
       onError: (err) => {
         trigger('error');

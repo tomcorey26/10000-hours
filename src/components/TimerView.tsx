@@ -118,7 +118,7 @@ export function TimerView({
   }
 
   function handleBack() {
-    router.push("/skills");
+    router.push("/habits");
   }
 
   useEffect(() => {
