@@ -146,6 +146,7 @@ export function Dashboard({ initialHabits }: { initialHabits: Habit[] }) {
             <div
               onClick={() => router.push("/timer")}
               className="cursor-pointer"
+              data-testid="active-habit-card"
             >
               <HabitCard
                 key={activeHabit.id}

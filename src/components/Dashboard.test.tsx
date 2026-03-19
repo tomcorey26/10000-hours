@@ -95,11 +95,8 @@ describe("Dashboard", () => {
 
     render(<Dashboard initialHabits={habits} />);
 
-    const activeCard = screen
-      .getByText("Active Habit")
-      .closest(".cursor-pointer");
-    expect(activeCard).toBeTruthy();
-    await user.click(activeCard!);
+    const activeCard = screen.getByTestId("active-habit-card");
+    await user.click(activeCard);
 
     expect(mockPush).toHaveBeenCalledWith("/timer");
   });
