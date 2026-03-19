@@ -1,19 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { useDeleteWithUndo } from '@/hooks/use-delete-with-undo';
 import { CalendarView } from '@/components/CalendarView';
 import { List, CalendarDays, Trash2 } from 'lucide-react';
 import { formatTime } from '@/lib/format';
@@ -37,10 +28,13 @@ export function SessionsView({
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const { trigger } = useHaptics();
   const deleteSession = useDeleteSession();
+  const { pendingIds, scheduleDelete } = useDeleteWithUndo((id) => {
+    deleteSession.mutate(id);
+  });
 
   const initialData = initialSessions ? { sessions: initialSessions, totalSeconds: initialTotalSeconds ?? 0 } : undefined;
   const { data } = useSessions({ habitId: selectedHabitId || undefined, range: dateRange, viewMode }, initialData);
-  const sessions = data?.sessions ?? [];
+  const sessions = (data?.sessions ?? []).filter((s) => !pendingIds.has(s.id));
   const totalSeconds = data?.totalSeconds ?? 0;
 
   const dateRanges: { value: DateRange; label: string }[] = [
@@ -136,56 +130,46 @@ export function SessionsView({
         <p className="text-center text-muted-foreground py-8">No sessions yet</p>
       ) : (
         <div className="space-y-2">
-          {sessions.map(session => (
-            <Card key={session.id}>
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium">{session.habitName}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize">
-                      {session.timerMode}
-                    </span>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+          <AnimatePresence initial={false}>
+            {sessions.map(session => (
+              <motion.div
+                key={session.id}
+                layout
+                exit={{ opacity: 0, x: -80, height: 0, marginBottom: 0 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+              >
+                <Card>
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium">{session.habitName}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize">
+                          {session.timerMode}
+                        </span>
                         <button
                           className="text-muted-foreground hover:text-destructive transition-colors"
                           aria-label="Delete session"
+                          onClick={() => {
+                            trigger('error');
+                            scheduleDelete(session.id, `${session.habitName} session`);
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete session?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will permanently delete this {session.habitName} session ({formatDuration(session.durationSeconds)}). This cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => {
-                              trigger('error');
-                              deleteSession.mutate(session.id);
-                            }}
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>{formatDate(session.endTime)}</span>
-                  <span className="font-mono">{formatDuration(session.durationSeconds)}</span>
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {formatTimeOfDay(session.startTime)} — {formatTimeOfDay(session.endTime)}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>{formatDate(session.endTime)}</span>
+                      <span className="font-mono">{formatDuration(session.durationSeconds)}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {formatTimeOfDay(session.startTime)} — {formatTimeOfDay(session.endTime)}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
