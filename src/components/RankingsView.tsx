@@ -32,7 +32,7 @@ export function RankingsView({ initialRankings }: { initialRankings?: Ranking[] 
             <span className={`text-lg font-bold w-8 ${RANK_COLORS[r.rank] || 'text-muted-foreground'}`}>
               #{r.rank}
             </span>
-            <span className="font-medium flex-1">{r.habitName}</span>
+            <span className="font-medium flex-1 truncate min-w-0">{r.habitName}</span>
             <span className="font-mono text-sm text-muted-foreground">{formatTime(r.totalSeconds)}</span>
           </CardContent>
         </Card>

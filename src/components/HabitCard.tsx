@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatTime, formatElapsed, formatRemaining } from "@/lib/format";
 import { useHaptics } from "@/hooks/use-haptics";
@@ -56,17 +57,17 @@ export function HabitCard({
       className={`transition-all ${isActive ? "ring-2 ring-primary animate-pulse-subtle" : ""}`}
     >
       <CardContent className="p-4 flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-lg">{habit.name}</h3>
+        <div className="flex items-center justify-between min-w-0">
+          <h3 className="font-semibold text-lg truncate min-w-0">{habit.name}</h3>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <button className="text-muted-foreground text-sm hover:text-destructive">
-                Delete
+              <button className="text-muted-foreground hover:text-destructive transition-colors" aria-label="Delete habit">
+                <Trash2 className="h-4 w-4" />
               </button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>
+                <AlertDialogTitle className="break-words line-clamp-2">
                   Delete &quot;{habit.name}&quot;?
                 </AlertDialogTitle>
                 <AlertDialogDescription>

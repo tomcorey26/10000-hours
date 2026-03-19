@@ -98,7 +98,7 @@ export function Dashboard({ initialHabits }: { initialHabits: Habit[] }) {
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Switch timer?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="break-words">
               Your <span className="font-semibold">{activeHabit?.name}</span> session is still running. Starting{" "}
               <span className="font-semibold">{switchConfirmHabit?.name}</span> will end that session and save your progress.
             </AlertDialogDescription>

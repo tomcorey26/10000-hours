@@ -59,7 +59,7 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center px-4">
-      <h2 className="text-2xl font-bold mb-2">{habitName}</h2>
+      <h2 className="text-2xl font-bold mb-2 line-clamp-2 break-words text-center w-full">{habitName}</h2>
       <p className="text-muted-foreground mb-8">Choose timer mode</p>
 
       {/* Toggle */}

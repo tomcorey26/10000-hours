@@ -140,8 +140,8 @@ export function SessionsView({
               >
                 <Card>
                   <CardContent className="p-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium">{session.habitName}</span>
+                    <div className="flex items-center justify-between mb-1 min-w-0">
+                      <span className="font-medium truncate min-w-0 mr-2">{session.habitName}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize">
                           {session.timerMode}

@@ -5,7 +5,7 @@ import { createHabitForUser, getHabitsForUser } from "@/server/db/habits";
 import { autoStopExpiredCountdown } from "@/server/db/timers";
 
 const createHabitSchema = z.object({
-  name: z.string().min(1).max(100),
+  name: z.string().min(1).max(30),
 });
 
 export async function GET() {

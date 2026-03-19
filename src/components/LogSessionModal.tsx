@@ -78,7 +78,7 @@ export function LogSessionModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
       <div className="bg-background rounded-lg p-6 w-full max-w-sm">
         <h2 className="text-xl font-bold mb-1">Log Session</h2>
-        <p className="text-muted-foreground text-sm mb-4">{habitName}</p>
+        <p className="text-muted-foreground text-sm mb-4 truncate">{habitName}</p>
         <p className="text-muted-foreground text-xs mb-4">
           Sessions can only be logged up to 7 days back.
         </p>

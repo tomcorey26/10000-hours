@@ -160,7 +160,7 @@ export function TimerView({
           <p className="text-4xl font-mono font-light tracking-tight mb-2">
             {formatTime(successData.durationSeconds)}
           </p>
-          <p className="text-sm text-muted-foreground mb-10">of {habitName}</p>
+          <p className="text-sm text-muted-foreground mb-10 truncate max-w-full px-4">of {habitName}</p>
           <PressableButton
             size="lg"
             onClick={handleBack}
@@ -179,7 +179,7 @@ export function TimerView({
         <button onClick={handleBack} className="text-muted-foreground text-sm">
           &larr; Back
         </button>
-        <span className="font-semibold">{habitName}</span>
+        <span className="font-semibold truncate max-w-[50%]">{habitName}</span>
         <div className="w-12" />
       </header>
 

@@ -22,7 +22,7 @@ export function AddHabitForm({ onAdd }: { onAdd: (name: string) => Promise<void>
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
-      <Input placeholder="New habit name..." value={name} onChange={(e) => setName(e.target.value)} className="flex-1" />
+      <Input placeholder="New habit name (max 30 chars)" value={name} onChange={(e) => setName(e.target.value)} className="flex-1" maxLength={30} />
       <Button type="submit" disabled={loading || !name.trim()}>Add</Button>
     </form>
   );
