@@ -1,4 +1,5 @@
 'use client';
+'use no memo'; // react-hook-form uses mutable refs incompatible with React Compiler
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
