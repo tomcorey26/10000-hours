@@ -109,7 +109,7 @@ export function HabitCard({
               {formatTime(habit.totalSeconds)}
             </span>{" "}
             lifetime
-            {habit.streak > 0 && <span> · 🔥 {habit.streak}d streak</span>}
+            {habit.streak > 1 && <span> · 🔥 {habit.streak}d streak</span>}
           </p>
         </div>
 
