@@ -6,9 +6,11 @@ Replace password-based auth with passkey-only (WebAuthn) auth using `@simpleweba
 
 - **Passkey-only** — no passwords, no email, no forgot-password flow
 - **Username as identifier** — unique, used to look up credentials at login
+- **Username validation** — 3-30 chars, alphanumeric + underscore, stored lowercase for case-insensitive lookup
 - **Multiple passkeys per user** (Option B) — users register backup passkeys for recovery
 - **Passkey sync** (Option D) — iCloud Keychain, Google Password Manager, 1Password handle cross-device access naturally
 - **Library: `@simplewebauthn`** — wraps raw WebAuthn, handles CBOR/attestation complexity
+- **Migration:** clean cut, use `drizzle-kit push` with fresh database
 
 ## Data Model
 
@@ -31,7 +33,10 @@ passkey_credentials
   userId        integer  FK → users.id, cascade delete
   publicKey     text     base64url-encoded public key
   counter       integer  default 0 (replay protection)
-  transports    text     JSON array, e.g. ["internal","hybrid"]
+  deviceType    text     "singleDevice" | "multiDevice"
+  backedUp      integer  boolean (0/1)
+  transports    text     JSON array (JSON.stringify on write, JSON.parse on read)
+  label         text     optional user-provided name ("MacBook Pro", "iPhone")
   createdAt     integer  timestamp
 ```
 
@@ -42,33 +47,36 @@ One user → many credentials.
 ```
 challenges
   id            integer  PK autoincrement
-  userId        integer  FK → users.id, cascade delete (nullable for registration)
+  username      text     not null (lookup key for registration, before user exists)
+  userId        integer  nullable (set for authenticated flows like "add passkey")
   challenge     text     not null
   type          text     "registration" | "authentication"
   expiresAt     integer  timestamp
 ```
 
-Short-lived (60s). Deleted on verification or expiry.
+Short-lived (60s). Cleanup: lazily delete expired rows on each new challenge insert.
 
 ## Auth Flows
 
 ### Registration (Sign Up)
 
 1. User enters username
-2. `POST /api/auth/passkey/register-options` with `{ username }` → server checks availability, creates user row, generates WebAuthn registration options, stores challenge
+2. `POST /api/auth/passkey/register-options` with `{ username }` → server checks username availability, generates WebAuthn registration options, stores challenge keyed by username (user row NOT created yet)
 3. Client calls `startRegistration()` from `@simplewebauthn/browser` → browser biometric prompt
-4. `POST /api/auth/passkey/register-verify` with attestation response → server verifies, stores credential, sets JWT session cookie
+4. `POST /api/auth/passkey/register-verify` with `{ username, attestation }` → server verifies attestation, creates user row, stores credential, sets JWT session cookie
+
+User row is created in `register-verify` (not `register-options`) to avoid orphan rows if the user cancels the biometric prompt.
 
 ### Login (Sign In)
 
 1. User enters username
-2. `POST /api/auth/passkey/login-options` with `{ username }` → server looks up credentials, generates authentication options, stores challenge
+2. `POST /api/auth/passkey/login-options` with `{ username }` → server looks up user + credentials, generates authentication options, stores challenge keyed by username
 3. Client calls `startAuthentication()` → browser biometric prompt
 4. `POST /api/auth/passkey/login-verify` with assertion response → server verifies, updates counter, sets JWT session cookie
 
 ### Adding a Passkey (Account Page)
 
-Same as registration steps 2-4, but user is already authenticated. Uses session userId instead of creating a new user.
+Uses `register-options` / `register-verify` with an authenticated session. When a valid session exists, the endpoint skips username availability check and uses the session userId. The challenge is stored with `userId` set. On verify, it stores the credential against the existing user instead of creating a new one.
 
 ## API Routes
 
@@ -76,8 +84,8 @@ Same as registration steps 2-4, but user is already authenticated. Uses session 
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| POST | `/api/auth/passkey/register-options` | Generate registration challenge |
-| POST | `/api/auth/passkey/register-verify` | Verify attestation, create credential, set session |
+| POST | `/api/auth/passkey/register-options` | Generate registration challenge (unauthenticated: signup, authenticated: add passkey) |
+| POST | `/api/auth/passkey/register-verify` | Verify attestation, create credential (+ user if signup), set session |
 | POST | `/api/auth/passkey/login-options` | Generate authentication challenge |
 | POST | `/api/auth/passkey/login-verify` | Verify assertion, set session |
 | GET | `/api/auth/passkey/list` | List user's credentials (authenticated) |
@@ -88,10 +96,13 @@ Same as registration steps 2-4, but user is already authenticated. Uses session 
 - `POST /api/auth/login`
 - `POST /api/auth/signup`
 
+### Modified
+
+- `GET /api/auth/me` — return `username` instead of `email`
+
 ### Unchanged
 
 - `POST /api/auth/logout`
-- `GET /api/auth/me`
 - Middleware (`src/middleware.ts`)
 - JWT session layer
 
@@ -101,7 +112,7 @@ Same as registration steps 2-4, but user is already authenticated. Uses session 
 
 - `src/lib/passkey.ts` — WebAuthn RP config (RP_ID, RP_ORIGIN, RP name)
 - `src/server/db/passkeys.ts` — credential CRUD queries
-- `src/server/db/challenges.ts` — challenge store/retrieve/delete
+- `src/server/db/challenges.ts` — challenge store/retrieve/delete (with lazy expiry cleanup)
 - `src/app/api/auth/passkey/register-options/route.ts`
 - `src/app/api/auth/passkey/register-verify/route.ts`
 - `src/app/api/auth/passkey/login-options/route.ts`
@@ -114,9 +125,10 @@ Same as registration steps 2-4, but user is already authenticated. Uses session 
 
 - `src/db/schema.ts` — new tables, modified users table
 - `src/lib/auth.ts` — remove `hashPassword`, `verifyPassword`, drop bcryptjs
-- `src/server/db/users.ts` — `createUser(username)`, add `getUserByUsername`, remove `getUserByEmail`
+- `src/server/db/users.ts` — `createUser(username)`, add `getUserByUsername`, remove `getUserByEmail`; `getUserById` returns `username` instead of `email`
+- `src/app/api/auth/me/route.ts` — return `username` instead of `email`
 - `src/components/AuthForm.tsx` — username input + passkey flow (replaces email/password form)
-- `src/hooks/use-auth.ts` — new mutations for passkey endpoints
+- `src/hooks/use-auth.ts` — new mutations for passkey endpoints, `User` type: `username` replaces `email`
 
 ### Deleted files
 
@@ -138,17 +150,21 @@ Same as registration steps 2-4, but user is already authenticated. Uses session 
 
 `/account` — authenticated users can:
 
-1. View list of registered passkeys (credential ID truncated, creation date)
-2. Add a new passkey (triggers registration flow with current session)
+1. View list of registered passkeys (label, device type, backed-up status, creation date)
+2. Add a new passkey (triggers registration flow with current session, optional label)
 3. Remove a passkey (blocked if it's the last one)
+
+## Known Limitations
+
+- **No rate limiting** on unauthenticated endpoints (`register-options`, `login-options`). Future TODO — add per-IP rate limiting to prevent challenge table flooding.
 
 ## Testing
 
 ### Server-side
 
-- Registration: username validation, challenge generation, credential storage
+- Registration: username validation, challenge generation, credential storage, user created only on verify
 - Login: challenge generation, assertion verification, counter update
-- Edge cases: duplicate username, non-existent username, expired challenge, can't delete last passkey
+- Edge cases: duplicate username, non-existent username, expired challenge, can't delete last passkey, invalid username format
 
 ### Client-side
 
