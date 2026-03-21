@@ -3,9 +3,29 @@ import { relations } from 'drizzle-orm';
 
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  email: text('email').notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
+  username: text('username').notNull().unique(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const passkeyCredentials = sqliteTable('passkey_credentials', {
+  id: text('id').primaryKey(), // base64url credential ID
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  publicKey: text('public_key').notNull(), // base64url encoded
+  counter: integer('counter').notNull().default(0),
+  deviceType: text('device_type').notNull(), // "singleDevice" | "multiDevice"
+  backedUp: integer('backed_up', { mode: 'boolean' }).notNull().default(false),
+  transports: text('transports'), // JSON array string
+  label: text('label'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const challenges = sqliteTable('challenges', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  username: text('username').notNull(),
+  userId: integer('user_id'),
+  challenge: text('challenge').notNull(),
+  type: text('type').notNull(), // "registration" | "authentication"
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
 });
 
 export const habits = sqliteTable('habits', {
@@ -36,6 +56,11 @@ export const activeTimers = sqliteTable('active_timers', {
 export const usersRelations = relations(users, ({ many }) => ({
   habits: many(habits),
   activeTimers: many(activeTimers),
+  passkeyCredentials: many(passkeyCredentials),
+}));
+
+export const passkeyCredentialsRelations = relations(passkeyCredentials, ({ one }) => ({
+  user: one(users, { fields: [passkeyCredentials.userId], references: [users.id] }),
 }));
 
 export const habitsRelations = relations(habits, ({ one, many }) => ({
