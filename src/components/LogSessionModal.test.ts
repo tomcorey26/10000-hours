@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { getDateOptions } from "./LogSessionModal";
+import { getDateOptions, getDefaultStartTime } from "./LogSessionModal";
 
 describe("getDateOptions", () => {
   beforeEach(() => {
@@ -49,5 +49,25 @@ describe("getDateOptions", () => {
       });
       expect(opt.label).toBe(expectedLabel);
     }
+  });
+});
+
+describe("getDefaultStartTime", () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
+
+  it("rounds down to nearest 15 minutes", () => {
+    vi.setSystemTime(new Date("2026-03-19T14:37:00"));
+    expect(getDefaultStartTime()).toBe("14:30");
+  });
+
+  it("returns exact time when already on 15-min boundary", () => {
+    vi.setSystemTime(new Date("2026-03-19T09:15:00"));
+    expect(getDefaultStartTime()).toBe("09:15");
+  });
+
+  it("pads single-digit hours", () => {
+    vi.setSystemTime(new Date("2026-03-19T08:05:00"));
+    expect(getDefaultStartTime()).toBe("08:00");
   });
 });

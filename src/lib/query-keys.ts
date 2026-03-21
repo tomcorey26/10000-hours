@@ -9,6 +9,7 @@ export const queryKeys = {
     all: ['sessions'] as const,
     list: (filters: { habitId?: string; range?: string; viewMode: string }) =>
       ['sessions', 'list', filters] as const,
+    byDate: (date: string) => ['sessions', 'byDate', date] as const,
   },
   rankings: {
     all: ['rankings'] as const,

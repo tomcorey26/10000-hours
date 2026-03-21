@@ -1,12 +1,14 @@
-import { and, desc, eq, gte } from "drizzle-orm";
+import { and, desc, eq, gte, lt } from "drizzle-orm";
 
 import { db } from "@/db";
-import { habits, timeSessions } from "@/db/schema";
+import { activeTimers, habits, timeSessions } from "@/db/schema";
 import type { Session } from "@/lib/types";
 
 type SessionFilters = {
   habitId?: string;
   range?: string;
+  date?: string;
+  tzOffset?: number;
 };
 
 type ManualSessionInput = {
@@ -21,12 +23,21 @@ export async function getSessionsForUser(
   userId: number,
   filters: SessionFilters,
 ): Promise<{ sessions: Session[]; totalSeconds: number }> {
-  const dateFilter = getDateFilter(filters.range);
-
   const conditions = [eq(habits.userId, userId)];
   if (filters.habitId)
     conditions.push(eq(timeSessions.habitId, Number(filters.habitId)));
-  if (dateFilter) conditions.push(gte(timeSessions.endTime, dateFilter));
+
+  if (filters.date && filters.tzOffset !== undefined) {
+    const offsetMs = filters.tzOffset * 60 * 1000;
+    const dayStart = new Date(filters.date + "T00:00:00");
+    dayStart.setTime(dayStart.getTime() + offsetMs);
+    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+    conditions.push(gte(timeSessions.startTime, dayStart));
+    conditions.push(lt(timeSessions.startTime, dayEnd));
+  } else {
+    const dateFilter = getDateFilter(filters.range);
+    if (dateFilter) conditions.push(gte(timeSessions.endTime, dateFilter));
+  }
 
   const rows = await db
     .select({
@@ -97,6 +108,50 @@ export async function deleteSessionForUser(
     .returning();
 
   return deleted ?? null;
+}
+
+export async function getSessionsForDateRange(
+  userId: number,
+  dayStart: Date,
+  dayEnd: Date,
+): Promise<
+  {
+    startTime: Date;
+    endTime: Date;
+    durationSeconds: number;
+    timerMode: string;
+    habitName: string;
+  }[]
+> {
+  return db
+    .select({
+      startTime: timeSessions.startTime,
+      endTime: timeSessions.endTime,
+      durationSeconds: timeSessions.durationSeconds,
+      timerMode: timeSessions.timerMode,
+      habitName: habits.name,
+    })
+    .from(timeSessions)
+    .innerJoin(habits, eq(timeSessions.habitId, habits.id))
+    .where(
+      and(
+        eq(timeSessions.userId, userId),
+        gte(timeSessions.startTime, dayStart),
+        lt(timeSessions.startTime, dayEnd),
+      ),
+    );
+}
+
+export async function getActiveTimerForUser(
+  userId: number,
+): Promise<{ startTime: Date; habitName: string } | null> {
+  const row = await db
+    .select({ startTime: activeTimers.startTime, habitName: habits.name })
+    .from(activeTimers)
+    .innerJoin(habits, eq(activeTimers.habitId, habits.id))
+    .where(eq(activeTimers.userId, userId))
+    .get();
+  return row ?? null;
 }
 
 function getDateFilter(range?: string): Date | null {

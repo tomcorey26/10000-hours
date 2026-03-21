@@ -22,6 +22,19 @@ export function useSessions(filters: SessionFilters, initialData?: { sessions: S
   });
 }
 
+export function useSessionsByDate(date: string | null) {
+  return useQuery({
+    queryKey: queryKeys.sessions.byDate(date ?? ""),
+    queryFn: () => {
+      const tzOffset = new Date().getTimezoneOffset();
+      return api<{ sessions: Session[]; totalSeconds: number }>(
+        `/api/sessions?date=${date}&tzOffset=${tzOffset}`,
+      );
+    },
+    enabled: !!date,
+  });
+}
+
 export function useDeleteSession() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -38,7 +51,7 @@ export function useDeleteSession() {
 export function useLogSession() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { habitId: number; date: string; durationMinutes: number }) =>
+    mutationFn: (body: { habitId: number; date: string; startTime: string; tzOffset: number; durationMinutes: number }) =>
       api('/api/sessions', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all });
