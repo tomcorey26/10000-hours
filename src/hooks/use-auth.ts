@@ -1,5 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import {
+  startRegistration,
+  startAuthentication,
+  type PublicKeyCredentialCreationOptionsJSON,
+  type PublicKeyCredentialRequestOptionsJSON,
+} from '@simplewebauthn/browser';
 import { api } from '@/lib/api';
 import { queryKeys } from '@/lib/query-keys';
 
@@ -22,7 +27,7 @@ export function usePasskeyRegister() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ username, label }: { username: string; label?: string }) => {
-      const options = await api<any>('/api/auth/passkey/register-options', {
+      const options = await api<PublicKeyCredentialCreationOptionsJSON>('/api/auth/passkey/register-options', {
         method: 'POST',
         body: JSON.stringify({ username }),
       });
@@ -40,7 +45,7 @@ export function usePasskeyLogin() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (username: string) => {
-      const options = await api<any>('/api/auth/passkey/login-options', {
+      const options = await api<PublicKeyCredentialRequestOptionsJSON>('/api/auth/passkey/login-options', {
         method: 'POST',
         body: JSON.stringify({ username }),
       });

@@ -12,7 +12,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const credential = getCredentialById(id);
+  const credential = await getCredentialById(id);
   if (!credential || credential.userId !== userId) {
     return NextResponse.json({ error: "Credential not found" }, { status: 404 });
   }

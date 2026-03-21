@@ -23,8 +23,8 @@ export async function storeChallenge(data: {
   });
 }
 
-export function getChallenge(username: string, type: "registration" | "authentication") {
-  return db
+export async function getChallenge(username: string, type: "registration" | "authentication") {
+  return await db
     .select()
     .from(challenges)
     .where(and(eq(challenges.username, username.toLowerCase()), eq(challenges.type, type)))

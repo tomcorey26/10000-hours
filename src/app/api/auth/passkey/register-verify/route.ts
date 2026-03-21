@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   }
 
   const username = body.username.toLowerCase();
-  const stored = getChallenge(username, "registration");
+  const stored = await getChallenge(username, "registration");
 
   if (!stored || stored.expiresAt < new Date()) {
     return NextResponse.json({ error: "Challenge not found or expired" }, { status: 400 });
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   let userId = await getSessionUserId();
 
   if (!userId) {
-    const existing = getUserByUsername(username);
+    const existing = await getUserByUsername(username);
     if (existing) {
       return NextResponse.json({ error: "Username already taken" }, { status: 409 });
     }

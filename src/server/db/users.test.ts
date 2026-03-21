@@ -16,8 +16,8 @@ describe("getUserByUsername", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("queries by lowercase username", async () => {
-    mockGet.mockReturnValue({ id: 1, username: "testuser" });
-    const result = getUserByUsername("TestUser");
+    mockGet.mockResolvedValue({ id: 1, username: "testuser" });
+    const result = await getUserByUsername("TestUser");
     expect(result).toEqual({ id: 1, username: "testuser" });
   });
 });

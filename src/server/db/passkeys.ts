@@ -15,16 +15,16 @@ export async function createCredential(data: {
   await db.insert(passkeyCredentials).values(data);
 }
 
-export function getCredentialById(id: string) {
-  return db
+export async function getCredentialById(id: string) {
+  return await db
     .select()
     .from(passkeyCredentials)
     .where(eq(passkeyCredentials.id, id))
     .get();
 }
 
-export function getCredentialsByUserId(userId: number) {
-  return db
+export async function getCredentialsByUserId(userId: number) {
+  return await db
     .select()
     .from(passkeyCredentials)
     .where(eq(passkeyCredentials.userId, userId))

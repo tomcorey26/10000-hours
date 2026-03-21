@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { generateRegistrationOptions } from "@simplewebauthn/server";
 import { getSessionUserId } from "@/lib/auth";
-import { getUserByUsername, getUserById } from "@/server/db/users";
+import { getUserByUsername } from "@/server/db/users";
 import { getCredentialsByUserId } from "@/server/db/passkeys";
 import { storeChallenge } from "@/server/db/challenges";
 import { rpName, rpID } from "@/lib/passkey";
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   const sessionUserId = await getSessionUserId();
 
   if (!sessionUserId) {
-    const existing = getUserByUsername(username);
+    const existing = await getUserByUsername(username);
     if (existing) {
       return NextResponse.json({ error: "Username already taken" }, { status: 409 });
     }

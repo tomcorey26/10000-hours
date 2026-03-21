@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { setSessionCookie } from "@/lib/auth";
-import { getUserByUsername } from "@/server/db/users";
 import { getCredentialById, updateCredentialCounter } from "@/server/db/passkeys";
 import { getChallenge, deleteChallenge } from "@/server/db/challenges";
 import { rpID, rpOrigin } from "@/lib/passkey";
@@ -14,13 +13,13 @@ export async function POST(request: Request) {
   }
 
   const username = body.username.toLowerCase();
-  const stored = getChallenge(username, "authentication");
+  const stored = await getChallenge(username, "authentication");
 
   if (!stored || stored.expiresAt < new Date()) {
     return NextResponse.json({ error: "Challenge not found or expired" }, { status: 400 });
   }
 
-  const credential = getCredentialById(body.assertion.id);
+  const credential = await getCredentialById(body.assertion.id);
   if (!credential) {
     await deleteChallenge(stored.id);
     return NextResponse.json({ error: "Credential not found" }, { status: 400 });

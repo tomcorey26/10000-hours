@@ -2,8 +2,8 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 
-export function getUserByUsername(username: string) {
-  return db
+export async function getUserByUsername(username: string) {
+  return await db
     .select()
     .from(users)
     .where(eq(users.username, username.toLowerCase()))
@@ -18,8 +18,8 @@ export async function createUser(username: string) {
   return user;
 }
 
-export function getUserById(userId: number) {
-  return db
+export async function getUserById(userId: number) {
+  return await db
     .select({ id: users.id, username: users.username })
     .from(users)
     .where(eq(users.id, userId))
