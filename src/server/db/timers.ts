@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { activeTimers, habits, timeSessions } from "@/db/schema";
-import { buildSessionFromTimer } from "@/lib/auto-stop-timer";
+import { buildSessionFromTimer } from "@/lib/timer";
 import type { AutoStoppedSession } from "@/lib/types";
 
 type StartTimerInput = {

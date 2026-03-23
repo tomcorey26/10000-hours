@@ -94,6 +94,7 @@ export function TimerView({
 
   function handleStop() {
     trigger("buzz");
+
     stopTimer.mutate(undefined, {
       onSuccess: (data) => {
         setSuccessData({
@@ -136,6 +137,7 @@ export function TimerView({
         setDisplay(formatElapsed(startTime));
       }
     }, 1000);
+
     return () => clearInterval(interval);
   }, [startTime, targetDurationSeconds, isCountdown, handleStop]);
 
@@ -160,7 +162,9 @@ export function TimerView({
           <p className="text-4xl font-mono font-light tracking-tight mb-2">
             {formatTime(successData.durationSeconds)}
           </p>
-          <p className="text-sm text-muted-foreground mb-10 truncate max-w-full px-4">of {habitName}</p>
+          <p className="text-sm text-muted-foreground mb-10 truncate max-w-full px-4">
+            of {habitName}
+          </p>
           <PressableButton
             size="lg"
             onClick={handleBack}
