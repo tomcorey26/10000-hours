@@ -21,7 +21,7 @@ type TimerData = {
 };
 
 export function buildSessionFromTimer(timer: TimerData, now: Date) {
-  const elapsed = Math.round(
+  const elapsed = Math.ceil(
     (now.getTime() - timer.startTime.getTime()) / 1000
   );
   const timerMode =
