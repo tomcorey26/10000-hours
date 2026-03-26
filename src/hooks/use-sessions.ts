@@ -1,24 +1,33 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { queryKeys } from '@/lib/query-keys';
 import type { Session } from '@/lib/types';
 
 type SessionFilters = { habitId?: string; range?: string; viewMode: string };
 
-export function useSessions(filters: SessionFilters, initialData?: { sessions: Session[]; totalSeconds: number }) {
-  // Only use initialData for the default (unfiltered) query to avoid stale data on filter changes
-  const isDefaultFilter = !filters.habitId && filters.range === 'all';
-  return useQuery({
+export type SessionsPage = {
+  sessions: Session[];
+  totalSeconds: number;
+  totalCount: number;
+  hasNextPage: boolean;
+  page: number;
+};
+
+export function useSessions(filters: SessionFilters) {
+  return useInfiniteQuery({
     queryKey: queryKeys.sessions.list(filters),
-    queryFn: () => {
+    queryFn: ({ pageParam }) => {
       const params = new URLSearchParams();
       if (filters.habitId) params.set('habitId', filters.habitId);
       if (filters.viewMode === 'list' && filters.range && filters.range !== 'all') {
         params.set('range', filters.range);
       }
-      return api<{ sessions: Session[]; totalSeconds: number }>(`/api/sessions?${params}`);
+      params.set('page', String(pageParam));
+      params.set('pageSize', '20');
+      return api<SessionsPage>(`/api/sessions?${params}`);
     },
-    ...(initialData && isDefaultFilter ? { initialData } : {}),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.hasNextPage ? lastPage.page + 1 : undefined,
   });
 }
 

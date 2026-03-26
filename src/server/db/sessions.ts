@@ -1,4 +1,4 @@
-import { and, desc, eq, gte } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { habits, timeSessions } from "@/db/schema";
@@ -7,6 +7,8 @@ import type { Session } from "@/lib/types";
 type SessionFilters = {
   habitId?: string;
   range?: string;
+  page?: number;
+  pageSize?: number;
 };
 
 type ManualSessionInput = {
@@ -20,13 +22,32 @@ type ManualSessionInput = {
 export async function getSessionsForUser(
   userId: number,
   filters: SessionFilters,
-): Promise<{ sessions: Session[]; totalSeconds: number }> {
+): Promise<{
+  sessions: Session[];
+  totalSeconds: number;
+  totalCount: number;
+  hasNextPage: boolean;
+  page: number;
+}> {
+  const { page = 1, pageSize = 20 } = filters;
   const dateFilter = getDateFilter(filters.range);
 
   const conditions = [eq(habits.userId, userId)];
   if (filters.habitId)
     conditions.push(eq(timeSessions.habitId, Number(filters.habitId)));
   if (dateFilter) conditions.push(gte(timeSessions.endTime, dateFilter));
+
+  const [stats] = await db
+    .select({
+      totalCount: count(),
+      totalSeconds: sql<number>`coalesce(sum(${timeSessions.durationSeconds}), 0)`,
+    })
+    .from(timeSessions)
+    .innerJoin(habits, eq(timeSessions.habitId, habits.id))
+    .where(and(...conditions));
+
+  const totalCount = stats?.totalCount ?? 0;
+  const totalSeconds = stats?.totalSeconds ?? 0;
 
   const rows = await db
     .select({
@@ -41,9 +62,9 @@ export async function getSessionsForUser(
     .from(timeSessions)
     .innerJoin(habits, eq(timeSessions.habitId, habits.id))
     .where(and(...conditions))
-    .orderBy(desc(timeSessions.endTime));
-
-  const totalSeconds = rows.reduce((sum, row) => sum + row.durationSeconds, 0);
+    .orderBy(desc(timeSessions.endTime))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 
   return {
     sessions: rows.map((row) => ({
@@ -52,6 +73,9 @@ export async function getSessionsForUser(
       endTime: row.endTime.toISOString(),
     })),
     totalSeconds,
+    totalCount,
+    hasNextPage: page * pageSize < totalCount,
+    page,
   };
 }
 

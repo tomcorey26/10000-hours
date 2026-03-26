@@ -10,18 +10,13 @@ import { List, CalendarDays, Trash2 } from 'lucide-react';
 import { formatTime } from '@/lib/format';
 import { useSessions, useDeleteSession } from '@/hooks/use-sessions';
 import { useHaptics } from '@/hooks/use-haptics';
-import type { Session } from '@/lib/types';
 
 type DateRange = 'today' | 'week' | 'month' | 'all';
 
 export function SessionsView({
   habits,
-  initialSessions,
-  initialTotalSeconds,
 }: {
   habits: { id: number; name: string }[];
-  initialSessions?: Session[];
-  initialTotalSeconds?: number;
 }) {
   const [selectedHabitId, setSelectedHabitId] = useState<string>('');
   const [dateRange, setDateRange] = useState<DateRange>('all');
@@ -32,10 +27,19 @@ export function SessionsView({
     deleteSession.mutateAsync(id),
   );
 
-  const initialData = initialSessions ? { sessions: initialSessions, totalSeconds: initialTotalSeconds ?? 0 } : undefined;
-  const { data } = useSessions({ habitId: selectedHabitId || undefined, range: dateRange, viewMode }, initialData);
-  const sessions = (data?.sessions ?? []).filter((s) => !pendingIds.has(s.id));
-  const totalSeconds = data?.totalSeconds ?? 0;
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useSessions({ habitId: selectedHabitId || undefined, range: dateRange, viewMode });
+
+  const sessions = (data?.pages.flatMap((p) => p.sessions) ?? []).filter(
+    (s) => !pendingIds.has(s.id),
+  );
+  const totalSeconds = data?.pages[0]?.totalSeconds ?? 0;
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const dateRanges: { value: DateRange; label: string }[] = [
     { value: 'today', label: 'Today' },
@@ -120,12 +124,19 @@ export function SessionsView({
         <div className="text-center py-2">
           <p className="text-sm text-muted-foreground">Total Time</p>
           <p className="text-2xl font-bold">{formatTime(totalSeconds)}</p>
+          {totalCount > 0 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {sessions.length} of {totalCount} sessions
+            </p>
+          )}
         </div>
       )}
 
       {/* Sessions list or calendar */}
       {viewMode === 'calendar' ? (
         <CalendarView sessions={sessions} habits={habits} />
+      ) : isLoading ? (
+        <p className="text-center text-muted-foreground py-8">Loading…</p>
       ) : sessions.length === 0 ? (
         <p className="text-center text-muted-foreground py-8">No sessions yet</p>
       ) : (
@@ -170,6 +181,17 @@ export function SessionsView({
               </motion.div>
             ))}
           </AnimatePresence>
+
+          {hasNextPage && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+            >
+              {isFetchingNextPage ? 'Loading…' : 'Load More'}
+            </Button>
+          )}
         </div>
       )}
     </div>
