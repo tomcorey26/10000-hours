@@ -1,8 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  startRegistration,
+  startAuthentication,
+  type PublicKeyCredentialCreationOptionsJSON,
+  type PublicKeyCredentialRequestOptionsJSON,
+} from '@simplewebauthn/browser';
 import { api } from '@/lib/api';
 import { queryKeys } from '@/lib/query-keys';
 
-type User = { id: number; email: string };
+type User = { id: number; username: string };
 
 export function useAuth() {
   return useQuery({
@@ -17,20 +23,38 @@ export function useAuth() {
   });
 }
 
-export function useLogin() {
+export function usePasskeyRegister() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { email: string; password: string }) =>
-      api('/api/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+    mutationFn: async ({ username, label }: { username: string; label?: string }) => {
+      const options = await api<PublicKeyCredentialCreationOptionsJSON>('/api/auth/passkey/register-options', {
+        method: 'POST',
+        body: JSON.stringify({ username }),
+      });
+      const attestation = await startRegistration({ optionsJSON: options });
+      return api('/api/auth/passkey/register-verify', {
+        method: 'POST',
+        body: JSON.stringify({ username, attestation, label }),
+      });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.auth.me }),
   });
 }
 
-export function useSignup() {
+export function usePasskeyLogin() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { email: string; password: string }) =>
-      api('/api/auth/signup', { method: 'POST', body: JSON.stringify(body) }),
+    mutationFn: async (username: string) => {
+      const options = await api<PublicKeyCredentialRequestOptionsJSON>('/api/auth/passkey/login-options', {
+        method: 'POST',
+        body: JSON.stringify({ username }),
+      });
+      const assertion = await startAuthentication({ optionsJSON: options });
+      return api('/api/auth/passkey/login-verify', {
+        method: 'POST',
+        body: JSON.stringify({ username, assertion }),
+      });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.auth.me }),
   });
 }
