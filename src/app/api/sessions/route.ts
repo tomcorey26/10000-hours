@@ -5,6 +5,7 @@ import {
   createManualSessionForUser,
   getSessionsForUser,
 } from "@/server/db/sessions";
+import { getFeatureFlags } from "@/lib/feature-flags";
 
 export async function GET(request: NextRequest) {
   const userId = await getSessionUserId();
@@ -30,6 +31,10 @@ const logSessionSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  if (!getFeatureFlags().logSession) {
+    return NextResponse.json({ error: "Feature not available" }, { status: 403 });
+  }
+
   const userId = await getSessionUserId();
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
