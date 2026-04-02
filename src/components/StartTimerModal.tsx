@@ -69,7 +69,7 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
           className={`flex-1 py-3 text-sm font-medium transition-colors ${
             mode === 'stopwatch'
               ? 'bg-primary text-primary-foreground'
-              : 'bg-background text-foreground hover:bg-accent'
+              : 'bg-background text-foreground hover:bg-muted-foreground/20'
           }`}
         >
           Stopwatch
@@ -79,7 +79,7 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
           className={`flex-1 py-3 text-sm font-medium transition-colors ${
             mode === 'countdown'
               ? 'bg-primary text-primary-foreground'
-              : 'bg-background text-foreground hover:bg-accent'
+              : 'bg-background text-foreground hover:bg-muted-foreground/20'
           }`}
         >
           Countdown
@@ -97,7 +97,7 @@ export function StartTimerModal({ habitName, onStart, onCancel }: Props) {
                 className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
                   minutes === preset.minutes && seconds === 0
                     ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-background text-foreground border-border hover:bg-accent'
+                    : 'bg-background text-foreground border-border hover:bg-muted-foreground/20'
                 }`}
               >
                 {preset.label}
