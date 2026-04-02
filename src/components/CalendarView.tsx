@@ -120,7 +120,7 @@ export function CalendarView({ sessions, habits }: Props) {
               key={i}
               onClick={() => { trigger('selection'); setSelectedDate(isSelected ? null : key); }}
               className={`
-                relative flex flex-col items-center py-1.5 text-sm rounded-md transition-colors
+                relative flex flex-col items-center py-1.5 md:min-h-[80px] md:pt-2 text-sm rounded-md transition-colors
                 ${!isCurrentMonth ? 'text-muted-foreground/40' : ''}
                 ${isToday && !isSelected ? 'ring-1 ring-primary/40' : ''}
                 ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}
