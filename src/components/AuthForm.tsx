@@ -91,93 +91,153 @@ export function AuthForm() {
     reset();
   }
 
-  return (
-    <div className="min-h-screen flex flex-col items-center pt-[15vh] px-4 bg-background">
-      <Image
-        src="/icon.webp"
-        alt="10k Hours"
-        width={48}
-        height={48}
-        className="mb-4"
-      />
-      <h1 className="text-2xl font-light mb-6">
-        {isLogin ? "Sign in to 10k Hours" : "Sign up for 10k Hours"}
-      </h1>
-      <Card className="w-full max-w-sm">
-        <CardContent className="pt-6">
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-4"
-            noValidate
+  const formContent = (
+    <>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-4"
+        noValidate
+      >
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            {...register("email")}
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            className="bg-background"
+          />
+          {errors.email && (
+            <p id="email-error" className="text-sm text-destructive">
+              {errors.email.message}
+            </p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            {...register("password")}
+            aria-invalid={!!errors.password}
+            aria-describedby={
+              errors.password ? "password-error" : undefined
+            }
+            className="bg-background"
+          />
+          {errors.password ? (
+            <p id="password-error" className="text-sm text-destructive">
+              {errors.password.message}
+            </p>
+          ) : !isLogin ? (
+            <p className="text-sm text-muted-foreground">
+              Must be at least 8 characters
+            </p>
+          ) : null}
+        </div>
+        {errors.root && (
+          <div
+            role="alert"
+            className="rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2"
           >
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                {...register("email")}
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? "email-error" : undefined}
-                className="bg-background"
-              />
-              {errors.email && (
-                <p id="email-error" className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                {...register("password")}
-                aria-invalid={!!errors.password}
-                aria-describedby={
-                  errors.password ? "password-error" : undefined
-                }
-                className="bg-background"
-              />
-              {errors.password ? (
-                <p id="password-error" className="text-sm text-destructive">
-                  {errors.password.message}
-                </p>
-              ) : !isLogin ? (
-                <p className="text-sm text-muted-foreground">
-                  Must be at least 8 characters
-                </p>
-              ) : null}
-            </div>
-            {errors.root && (
-              <div
-                role="alert"
-                className="rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2"
-              >
-                <p className="text-sm text-destructive">
-                  {errors.root.message}
-                </p>
-              </div>
-            )}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? "..." : isLogin ? "Sign In" : "Sign Up"}
-            </Button>
-          </form>
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              type="button"
-              onClick={toggleMode}
-              className="underline text-primary"
-            >
-              {isLogin ? "Sign up" : "Sign in"}
-            </button>
-          </p>
-        </CardContent>
-      </Card>
+            <p className="text-sm text-destructive">
+              {errors.root.message}
+            </p>
+          </div>
+        )}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={mutation.isPending}
+        >
+          {mutation.isPending ? "..." : isLogin ? "Sign In" : "Sign Up"}
+        </Button>
+      </form>
+      <p className="text-center text-sm text-muted-foreground mt-4">
+        {isLogin ? "Don't have an account? " : "Already have an account? "}
+        <button
+          type="button"
+          onClick={toggleMode}
+          className="underline text-primary"
+        >
+          {isLogin ? "Sign up" : "Sign in"}
+        </button>
+      </p>
+    </>
+  );
+
+  if (isLogin) {
+    return (
+      <div className="min-h-screen flex flex-col items-center pt-[15vh] px-4 bg-background">
+        <Image
+          src="/icon.webp"
+          alt="10k Hours"
+          width={48}
+          height={48}
+          className="mb-4"
+        />
+        <h1 className="text-2xl font-light mb-6">Sign in to 10k Hours</h1>
+        <Card className="w-full max-w-sm">
+          <CardContent className="pt-6">{formContent}</CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col lg:flex-row bg-background">
+      {/* Hero panel */}
+      <div className="lg:w-1/2 flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-16 lg:min-h-screen">
+        <h1 className="text-3xl lg:text-5xl font-bold tracking-tight text-foreground">
+          Create your free account
+        </h1>
+        <p className="mt-3 text-lg text-muted-foreground">
+          Start tracking your journey to 10,000 hours of mastery.
+        </p>
+        <div className="relative mt-8 h-64 lg:flex-1 lg:h-auto">
+          <Image
+            src="/signup-hero.webp"
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="object-cover"
+            priority
+          />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="relative lg:hidden flex items-center justify-center py-2">
+        <div className="absolute inset-0 flex items-center px-8">
+          <div className="w-full border-t border-primary/20" />
+        </div>
+        <div className="relative bg-background px-3">
+          <Image src="/icon.webp" alt="" width={28} height={28} />
+        </div>
+      </div>
+      <div className="hidden lg:flex items-center">
+        <div className="w-px h-2/3 bg-linear-to-b from-transparent via-primary/30 to-transparent" />
+      </div>
+
+      {/* Form panel */}
+      <div className="lg:w-1/2 flex flex-col items-center justify-center px-4 py-12 lg:py-0">
+        <div className="w-full max-w-sm">
+          <div className="flex flex-col items-center mb-6">
+            <Image
+              src="/icon.webp"
+              alt="10k Hours"
+              width={48}
+              height={48}
+              className="mb-4 hidden lg:block"
+            />
+            <h2 className="text-2xl font-light">Sign up for 10k Hours</h2>
+          </div>
+          <Card>
+            <CardContent className="pt-6">{formContent}</CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
