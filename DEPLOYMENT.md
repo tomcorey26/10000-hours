@@ -22,7 +22,7 @@
 - **Build pack**: Dockerfile
 - **Port**: 3000
 - **Environment variables**:
-  - `TURSO_DATABASE_URL=file:/app/data/local.db`
+  - `DATABASE_URL=file:/app/data/local.db`
   - `JWT_SECRET=<openssl rand -base64 32>`
 - **Persistent storage**: Directory mount, destination `/app/data` (keeps SQLite DB across deploys)
 

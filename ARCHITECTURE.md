@@ -169,7 +169,6 @@ Computed server-side in `queries.ts` — counts consecutive days with at least o
 ## Environment Variables
 
 ```
-TURSO_DATABASE_URL    # Turso database connection
-TURSO_AUTH_TOKEN      # Turso auth
+DATABASE_URL          # SQLite database connection (e.g. file:local.db)
 JWT_SECRET            # Secret for signing JWTs
 ```

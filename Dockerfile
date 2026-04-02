@@ -13,8 +13,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Placeholders so the build succeeds (real values set at runtime)
-ENV TURSO_DATABASE_URL=file:build.db
-ENV TURSO_AUTH_TOKEN=
+ENV DATABASE_URL=file:build.db
 ENV JWT_SECRET=build-placeholder
 
 RUN npm run build
