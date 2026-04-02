@@ -25,7 +25,7 @@ export function RankingsView({ initialRankings }: { initialRankings?: Ranking[] 
   }
 
   return (
-    <div className="space-y-2 md:max-w-2xl md:mx-auto">
+    <div className="space-y-2">
       <div className="text-center py-4">
         <h2 className="text-2xl font-bold">Rankings</h2>
         <p className="text-sm text-muted-foreground">Your skills ranked by total time</p>
