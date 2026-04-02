@@ -1,5 +1,3 @@
-"use client";
-
 import { Card } from "@/components/ui/card";
 
 // ──────────────────────────────────────────────
@@ -67,7 +65,7 @@ const ROW_COLORS = [
   "bg-primary/25",
 ];
 
-function RoutineCard({ routine }: { routine: Routine }) {
+export function RoutineCard({ routine }: { routine: Routine }) {
   return (
     <Card className="p-5">
       <p className="text-xs font-mono text-muted-foreground mb-1">
