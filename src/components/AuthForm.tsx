@@ -14,6 +14,7 @@ import { useLogin, useSignup } from "@/hooks/use-auth";
 import { ApiError } from "@/lib/api";
 import { useHaptics } from "@/hooks/use-haptics";
 import Image from "next/image";
+import { APP_NAME_SHORT } from "@/data/app";
 
 const FLOAT_EMOJIS = ["🎸", "🏀", "🎨", "⏱️", "🏆", "🎵", "⌨️", "📚", "🎯", "🧘", "🎹", "⚽", "🏋️", "📷", "🎤", "♟️", "🎻", "✏️"];
 
@@ -201,12 +202,12 @@ export function AuthForm() {
         <FloatingEmojis />
         <Image
           src="/icon.webp"
-          alt="10k Hours"
+          alt={APP_NAME_SHORT}
           width={48}
           height={48}
           className="relative mb-4"
         />
-        <h1 className="relative text-2xl font-light mb-6">Sign in to 10k Hours</h1>
+        <h1 className="relative text-2xl font-light mb-6">Sign in to {APP_NAME_SHORT}</h1>
         <Card className="relative w-full max-w-sm">
           <CardContent className="pt-6">{formContent}</CardContent>
         </Card>
@@ -255,12 +256,12 @@ export function AuthForm() {
           <div className="flex flex-col items-center mb-6">
             <Image
               src="/icon.webp"
-              alt="10k Hours"
+              alt={APP_NAME_SHORT}
               width={48}
               height={48}
               className="mb-4 hidden lg:block"
             />
-            <h2 className="text-2xl font-light">Sign up for 10k Hours</h2>
+            <h2 className="text-2xl font-light">Sign up for {APP_NAME_SHORT}</h2>
           </div>
           <Card>
             <CardContent className="pt-6">{formContent}</CardContent>

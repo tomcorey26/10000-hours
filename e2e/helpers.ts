@@ -1,8 +1,9 @@
 import { Page, expect } from '@playwright/test';
+import { APP_NAME } from '../src/data/app';
 
 /**
  * Signs up a new user with a unique email and returns the email used.
- * Ends on the dashboard page with "10,000 Hours" heading visible.
+ * Ends on the dashboard page with the app name heading visible.
  */
 export async function signUp(page: Page) {
   const email = `test-${Date.now()}@example.com`;
@@ -21,7 +22,7 @@ export async function signUp(page: Page) {
   await page.getByRole('button', { name: 'Sign Up' }).click();
 
   // Wait for dashboard to load — the heading appears in Dashboard's header
-  await page.getByRole('heading', { name: '10,000 Hours' }).waitFor();
+  await page.getByRole('heading', { name: APP_NAME }).waitFor();
 
   return email;
 }

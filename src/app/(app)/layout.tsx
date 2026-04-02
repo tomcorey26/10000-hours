@@ -6,6 +6,7 @@ import { TabNav } from "@/components/TabNav";
 import { LogoutButton } from "@/components/LogoutButton";
 import { buttonVariants } from "@/components/ui/button";
 import { CountdownAutoStop } from "@/components/CountdownAutoStop";
+import { APP_NAME } from "@/data/app";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -15,7 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="shrink-0 px-4 pt-6 pb-4 flex items-center justify-between md:px-6 md:border-b">
           <div className="flex items-center gap-2">
             <Image src="/icon.webp" alt="" width={28} height={28} />
-            <h1 className="text-xl font-mono font-semibold">10,000 Hours</h1>
+            <h1 className="text-xl font-mono font-semibold">{APP_NAME}</h1>
           </div>
           <div className="flex items-center gap-1">
             <Link

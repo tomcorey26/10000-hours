@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { signUp, addHabit } from './helpers';
+import { APP_NAME } from '../src/data/app';
 
 const HABIT_NAME = 'Piano Practice';
 
@@ -82,7 +83,7 @@ test.describe('Unified Timer Start', () => {
     await page.getByRole('button', { name: /start/i }).click();
     await page.getByText('Cancel').click();
 
-    await expect(page.getByRole('heading', { name: '10,000 Hours' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: APP_NAME })).toBeVisible();
     await expect(page.getByText(HABIT_NAME)).toBeVisible();
   });
 
