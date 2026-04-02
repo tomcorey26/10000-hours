@@ -27,6 +27,9 @@
 .DS_Store
 *.pem
 
+# playwright
+.playwright-auth.json
+
 # local database
 local.db
 
