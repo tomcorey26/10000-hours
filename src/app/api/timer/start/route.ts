@@ -6,6 +6,7 @@ import { startTimerForUser } from "@/server/db/timers";
 const startSchema = z.object({
   habitId: z.number().int().positive(),
   targetDurationSeconds: z.number().int().positive().optional(),
+  startTime: z.string().datetime().optional(),
 });
 
 export async function POST(request: Request) {
@@ -23,12 +24,13 @@ export async function POST(request: Request) {
   if (!parsed.success)
     return NextResponse.json({ error: "Invalid habitId" }, { status: 400 });
 
-  const { habitId, targetDurationSeconds } = parsed.data;
+  const { habitId, targetDurationSeconds, startTime } = parsed.data;
 
   const timer = await startTimerForUser({
     userId,
     habitId,
     targetDurationSeconds,
+    startTime: startTime ? new Date(startTime) : undefined,
   });
   if (!timer)
     return NextResponse.json({ error: "Habit not found" }, { status: 404 });

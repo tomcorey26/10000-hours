@@ -33,7 +33,7 @@ export function useDeleteHabit() {
 export function useStartTimer() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { habitId: number; targetDurationSeconds?: number }) =>
+    mutationFn: (body: { habitId: number; targetDurationSeconds?: number; startTime?: string }) =>
       api('/api/timer/start', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.habits.all }),
   });

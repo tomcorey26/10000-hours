@@ -9,13 +9,11 @@ type StartTimerInput = {
   userId: number;
   habitId: number;
   targetDurationSeconds?: number;
+  startTime?: Date;
 };
 
-export async function startTimerForUser({
-  userId,
-  habitId,
-  targetDurationSeconds,
-}: StartTimerInput) {
+export async function startTimerForUser(input: StartTimerInput) {
+  const { userId, habitId, targetDurationSeconds } = input;
   return db.transaction(async (tx) => {
     const habit = await tx
       .select({ id: habits.id })
@@ -37,7 +35,7 @@ export async function startTimerForUser({
       await tx.delete(activeTimers).where(eq(activeTimers.userId, userId));
     }
 
-    const startTime = new Date();
+    const startTime = input.startTime ?? new Date();
     await tx.insert(activeTimers).values({
       habitId,
       userId,
