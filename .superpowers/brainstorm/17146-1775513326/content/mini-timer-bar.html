@@ -1,0 +1,95 @@
+<h2>Mini-Timer Bar: Placement & Design</h2>
+<p class="subtitle">Persistent bar shown on all pages except /habits when timer is active</p>
+
+<div class="section">
+  <h3>Placement</h3>
+  <div class="split" style="gap:24px">
+    <div class="mockup" style="flex:1">
+      <div class="mockup-header">Option A: Top (below header)</div>
+      <div class="mockup-body" style="padding:0;font-family:system-ui;font-size:13px">
+        <div style="padding:10px 16px;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;font-size:12px">
+          <span style="font-weight:600">GrindLog</span>
+          <span style="color:#888">Account</span>
+        </div>
+        <div style="padding:10px 16px;background:linear-gradient(90deg,#1e3a5f,#1a1a2e);border-bottom:1px solid #3b82f6;display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block"></span>
+            <span style="font-weight:600;font-size:13px">Guitar</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-family:monospace;font-size:14px;font-weight:500">00:12:34</span>
+            <span style="color:#888;font-size:11px">→</span>
+          </div>
+        </div>
+        <div style="padding:16px;color:#888;font-size:12px">
+          <div style="margin-bottom:8px;font-weight:600;color:#ccc">Sessions</div>
+          <div style="padding:8px 0;border-bottom:1px solid #222">Guitar · 25m · Today</div>
+          <div style="padding:8px 0;border-bottom:1px solid #222">Piano · 45m · Yesterday</div>
+          <div style="padding:8px 0;border-bottom:1px solid #222">Drawing · 1h 10m · Yesterday</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup" style="flex:1">
+      <div class="mockup-header">Option B: Bottom (above tab nav)</div>
+      <div class="mockup-body" style="padding:0;font-family:system-ui;font-size:13px;display:flex;flex-direction:column;min-height:320px">
+        <div style="padding:10px 16px;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;font-size:12px">
+          <span style="font-weight:600">GrindLog</span>
+          <span style="color:#888">Account</span>
+        </div>
+        <div style="padding:16px;color:#888;font-size:12px;flex:1">
+          <div style="margin-bottom:8px;font-weight:600;color:#ccc">Sessions</div>
+          <div style="padding:8px 0;border-bottom:1px solid #222">Guitar · 25m · Today</div>
+          <div style="padding:8px 0;border-bottom:1px solid #222">Piano · 45m · Yesterday</div>
+          <div style="padding:8px 0;border-bottom:1px solid #222">Drawing · 1h 10m · Yesterday</div>
+        </div>
+        <div style="padding:10px 16px;background:linear-gradient(90deg,#1e3a5f,#1a1a2e);border-top:1px solid #3b82f6;display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block"></span>
+            <span style="font-weight:600;font-size:13px">Guitar</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-family:monospace;font-size:14px;font-weight:500">00:12:34</span>
+            <span style="color:#888;font-size:11px">→</span>
+          </div>
+        </div>
+        <div style="padding:10px 16px;border-top:1px solid #333;display:flex;justify-content:space-around;font-size:11px;color:#888">
+          <span>Habits</span>
+          <span>Sessions</span>
+          <span>Routines</span>
+          <span>Rankings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px">
+  <h3>Behavior</h3>
+  <div style="font-size:14px;line-height:1.8;color:#ccc">
+    <ul style="padding-left:20px">
+      <li><strong>Visible when:</strong> zustand has an active timer AND current page is NOT /habits</li>
+      <li><strong>Hidden on /habits:</strong> because /habits shows the full timer takeover view</li>
+      <li><strong>Click action:</strong> navigate to /habits (where full timer view is shown)</li>
+      <li><strong>Shows:</strong> habit name + live elapsed/remaining time</li>
+      <li><strong>Updates:</strong> every 1s via setInterval reading zustand startTime</li>
+    </ul>
+  </div>
+</div>
+
+<div class="options" style="margin-top:16px">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Top placement</h3>
+      <p>Always visible, like a banner. Doesn't compete with bottom nav on mobile.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Bottom placement</h3>
+      <p>Spotify-style. Closer to thumb on mobile. Sits above tab nav.</p>
+    </div>
+  </div>
+</div>

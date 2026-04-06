@@ -1,0 +1,76 @@
+<h2>Timer Architecture: Zustand Store Design</h2>
+<p class="subtitle">How the global timer store coordinates with the server</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Zustand as Cache Layer (Recommended)</h3>
+      <p>Zustand owns runtime timer state. React Query still fetches habits, but <strong>timer state lives in zustand</strong> — not derived from the habits query.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4>
+          <ul>
+            <li>Instant UI updates — no waiting for query invalidation</li>
+            <li>Timer state decoupled from habit fetching</li>
+            <li>Easy to read from any component (mini-bar, habits view, etc.)</li>
+            <li>Hydrate once on app load from habits query, then zustand is source of truth</li>
+          </ul>
+        </div>
+        <div class="cons"><h4>Cons</h4>
+          <ul>
+            <li>Two sources of truth — must keep zustand + DB in sync</li>
+            <li>Need hydration logic on page load</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:12px;color:#888;font-size:13px"><strong>Flow:</strong> Click Start → zustand updates immediately (optimistic) → API call fires → on success, store confirmed. On failure, rollback store.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>React Query Primary, Zustand as Derived Mirror</h3>
+      <p>React Query remains the source of truth. Zustand subscribes to the query cache and mirrors the active timer state for convenient access.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4>
+          <ul>
+            <li>Single source of truth (React Query cache)</li>
+            <li>No sync issues — zustand always reflects query state</li>
+            <li>Existing invalidation patterns keep working</li>
+          </ul>
+        </div>
+        <div class="cons"><h4>Cons</h4>
+          <ul>
+            <li>Timer updates still depend on query invalidation latency</li>
+            <li>Doesn't fully solve the original desync problem</li>
+            <li>Zustand adds complexity without much benefit over just reading the cache</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Zustand Only (Drop React Query for Timer)</h3>
+      <p>Timer operations go through zustand actions that call the API directly. React Query handles habits/sessions/rankings but <strong>not</strong> the active timer.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4>
+          <ul>
+            <li>Cleanest separation — timer is fully independent</li>
+            <li>No dual-cache confusion</li>
+            <li>Zustand actions = simple async functions</li>
+          </ul>
+        </div>
+        <div class="cons"><h4>Cons</h4>
+          <ul>
+            <li>Must manually trigger React Query invalidation for habits after stop</li>
+            <li>Active timer data currently embedded in habits response — need to restructure</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

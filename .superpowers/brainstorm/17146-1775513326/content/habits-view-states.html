@@ -1,0 +1,88 @@
+<h2>Habits Page: View State Machine</h2>
+<p class="subtitle">Three views rendered in the main content area of /habits, driven by zustand state</p>
+
+<div class="section">
+  <div class="split" style="gap:24px">
+    <div class="mockup" style="flex:1">
+      <div class="mockup-header">State 1: Habits List (default)</div>
+      <div class="mockup-body" style="padding:16px;font-family:system-ui;font-size:13px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <span style="font-weight:700;font-size:16px">My Habits</span>
+          <button class="mock-button" style="font-size:12px">+ Add</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="border:1px solid #333;border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:600">Guitar</div>
+              <div style="color:#888;font-size:11px">25m today · 🔥 4d streak</div>
+            </div>
+            <button class="mock-button" style="font-size:11px;padding:6px 14px">Start</button>
+          </div>
+          <div style="border:1px solid #333;border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:600">Piano</div>
+              <div style="color:#888;font-size:11px">0m today · No streak</div>
+            </div>
+            <button class="mock-button" style="font-size:11px;padding:6px 14px">Start</button>
+          </div>
+          <div style="border:1px solid #333;border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:600">Drawing</div>
+              <div style="color:#888;font-size:11px">1h 10m today · 🔥 12d streak</div>
+            </div>
+            <button class="mock-button" style="font-size:11px;padding:6px 14px">Start</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup" style="flex:1">
+      <div class="mockup-header">State 2: Timer Config</div>
+      <div class="mockup-body" style="padding:16px;font-family:system-ui;font-size:13px">
+        <div style="margin-bottom:8px">
+          <a style="color:#888;font-size:12px;cursor:pointer">← Back</a>
+        </div>
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-weight:700;font-size:18px">Guitar</div>
+          <div style="color:#888;font-size:12px">Choose timer mode</div>
+        </div>
+        <div style="display:flex;border:1px solid #555;border-radius:8px;overflow:hidden;margin-bottom:16px">
+          <div style="flex:1;text-align:center;padding:10px;background:#fff;color:#000;font-size:12px;font-weight:600">Stopwatch</div>
+          <div style="flex:1;text-align:center;padding:10px;font-size:12px;color:#888">Countdown</div>
+        </div>
+        <div style="text-align:center;margin-top:24px">
+          <button class="mock-button" style="width:100%;padding:14px;font-size:14px;font-weight:600">Start</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup" style="flex:1">
+      <div class="mockup-header">State 3: Active Timer (takeover)</div>
+      <div class="mockup-body" style="padding:16px;font-family:system-ui;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px">
+        <div style="font-weight:600;margin-bottom:4px">Guitar</div>
+        <div style="font-size:48px;font-family:monospace;font-weight:300;letter-spacing:2px;margin-bottom:4px">00:12:34</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:24px">
+          <span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block"></span>
+          <span style="color:#888;font-size:12px">Recording...</span>
+        </div>
+        <button class="mock-button" style="padding:14px 48px;font-size:14px;font-weight:600">End Session</button>
+        <div style="margin-top:24px;color:#888;font-size:11px;text-align:center">
+          <div>Today total: 37m</div>
+          <div>🔥 4 day streak</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px">
+  <h3>State Transitions</h3>
+  <div style="font-family:monospace;font-size:13px;line-height:2;padding:16px;background:#1a1a2e;border-radius:8px;color:#ccc">
+    <div><span style="color:#3b82f6">habits_list</span> —[click Start]→ <span style="color:#f59e0b">timer_config</span> { habitId }</div>
+    <div><span style="color:#f59e0b">timer_config</span> —[click Back]→ <span style="color:#3b82f6">habits_list</span></div>
+    <div><span style="color:#f59e0b">timer_config</span> —[click Start]→ <span style="color:#22c55e">active_timer</span> { habitId, startTime, targetDuration }</div>
+    <div><span style="color:#22c55e">active_timer</span> —[End Session / countdown done]→ <span style="color:#a855f7">success_screen</span></div>
+    <div><span style="color:#a855f7">success_screen</span> —[Back to Habits]→ <span style="color:#3b82f6">habits_list</span></div>
+    <div style="margin-top:8px;color:#888">On page load: if zustand has activeTimer → jump to <span style="color:#22c55e">active_timer</span></div>
+  </div>
+</div>
