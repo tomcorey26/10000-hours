@@ -14,8 +14,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { formatTime, formatElapsed, formatRemaining } from "@/lib/format";
+import { formatTime } from "@/lib/format";
 import { useHaptics } from "@/hooks/use-haptics";
 import type { Habit } from "@/lib/types";
 
@@ -30,32 +29,10 @@ export function HabitCard({
   onDelete: (habitId: number) => void;
   onLog?: (habitId: number) => void;
 }) {
-  const [elapsed, setElapsed] = useState("");
   const { trigger } = useHaptics();
 
-  const activeStartTime = habit.activeTimer?.startTime;
-
-  useEffect(() => {
-    if (!activeStartTime) return;
-    const targetDuration = habit.activeTimer?.targetDurationSeconds ?? null;
-    const update = () => {
-      setElapsed(
-        targetDuration !== null
-          ? formatRemaining(activeStartTime, targetDuration)
-          : formatElapsed(activeStartTime),
-      );
-    };
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, [activeStartTime, habit.activeTimer?.targetDurationSeconds]);
-
-  const isActive = !!habit.activeTimer;
-
   return (
-    <Card
-      className={`transition-all ${isActive ? "ring-2 ring-primary animate-pulse-subtle" : ""}`}
-    >
+    <Card className="transition-all">
       <CardContent className="p-4 flex flex-col gap-3">
         {/* Row 1: name + delete */}
         <div className="flex items-center justify-between min-w-0">
@@ -113,37 +90,30 @@ export function HabitCard({
           </p>
         </div>
 
-        {/* Active timer */}
-        {isActive && (
-          <p className="text-2xl font-mono text-primary">{elapsed}</p>
-        )}
-
         {/* Actions */}
-        {!isActive && (
-          <div className="flex gap-2">
+        <div className="flex gap-2">
+          <Button
+            onClick={() => {
+              trigger("medium");
+              onStart(habit.id);
+            }}
+            className="flex-1"
+          >
+            Start
+          </Button>
+          {onLog && (
             <Button
+              variant="outline"
               onClick={() => {
-                trigger("medium");
-                onStart(habit.id);
+                trigger("light");
+                onLog(habit.id);
               }}
               className="flex-1"
             >
-              Start
+              Log
             </Button>
-            {onLog && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  trigger("light");
-                  onLog(habit.id);
-                }}
-                className="flex-1"
-              >
-                Log
-              </Button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );

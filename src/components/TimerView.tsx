@@ -1,56 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { PressableButton } from "@/components/ui/pressable-button";
 import { formatTime, formatElapsed, formatRemaining } from "@/lib/format";
 import { isCountdownComplete } from "@/lib/timer";
-import { getRandomCongratsMessage } from "@/lib/congrats-messages";
-import { useStopTimer } from "@/hooks/use-habits";
 import { useHaptics } from "@/hooks/use-haptics";
 import { FullHeight } from "@/components/ui/full-height";
-
-const BUBBLE_EMOJIS = [
-  "🎉",
-  "⭐",
-  "🔥",
-  "💪",
-  "✨",
-  "🏆",
-  "🎯",
-  "💥",
-  "🙌",
-  "👏",
-];
-
-function EmojiBubbles() {
-  const bubbles = Array.from({ length: 14 }, (_, i) => ({
-    emoji: BUBBLE_EMOJIS[i % BUBBLE_EMOJIS.length],
-    left: `${5 + ((i * 7) % 90)}%`,
-    duration: 2.5 + (i % 4) * 0.6,
-    delay: (i % 7) * 0.4,
-    size: 1.2 + (i % 3) * 0.5,
-  }));
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {bubbles.map((b, i) => (
-        <span
-          key={i}
-          className="absolute bottom-0"
-          style={{
-            left: b.left,
-            fontSize: `${b.size}rem`,
-            animation: `bubble-up ${b.duration}s ease-out ${0.4 + b.delay}s infinite`,
-            opacity: 0,
-          }}
-        >
-          {b.emoji}
-        </span>
-      ))}
-    </div>
-  );
-}
 
 type Props = {
   habitName: string;
@@ -58,16 +13,9 @@ type Props = {
   targetDurationSeconds: number | null;
   todaySeconds: number;
   streak: number;
+  onStop: () => void;
+  onBack: () => void;
 };
-
-function playFanfare() {
-  try {
-    const audio = new Audio("/fanfare.mp3");
-    audio.play().catch(() => {});
-  } catch {
-    // Ignore audio errors
-  }
-}
 
 export function TimerView({
   habitName,
@@ -75,10 +23,10 @@ export function TimerView({
   targetDurationSeconds,
   todaySeconds,
   streak,
+  onStop,
+  onBack,
 }: Props) {
   const isCountdown = targetDurationSeconds !== null;
-  const router = useRouter();
-  const stopTimer = useStopTimer();
   const { trigger } = useHaptics();
 
   const [display, setDisplay] = useState(() =>
@@ -87,40 +35,12 @@ export function TimerView({
       : formatElapsed(startTime),
   );
   const stoppedRef = useRef(false);
-  const [successData, setSuccessData] = useState<{
-    durationSeconds: number;
-    message: string;
-  } | null>(null);
 
   function handleStop() {
+    if (stoppedRef.current) return;
+    stoppedRef.current = true;
     trigger("buzz");
-
-    stopTimer.mutate(undefined, {
-      onSuccess: (data) => {
-        setSuccessData({
-          durationSeconds: data.durationSeconds,
-          message: getRandomCongratsMessage(),
-        });
-        playFanfare();
-        trigger("buzz");
-        if (
-          document.hidden &&
-          "Notification" in window &&
-          Notification.permission === "granted"
-        ) {
-          try {
-            new Notification("🎉 Session Complete", {
-              body: `Your ${formatTime(data.durationSeconds)} ${habitName} session was recorded`,
-            });
-          } catch {}
-        }
-      },
-    });
-  }
-
-  function handleBack() {
-    trigger('light');
-    router.push("/habits");
+    onStop();
   }
 
   useEffect(() => {
@@ -131,7 +51,6 @@ export function TimerView({
           !stoppedRef.current &&
           isCountdownComplete(startTime, targetDurationSeconds)
         ) {
-          stoppedRef.current = true;
           handleStop();
         }
       } else {
@@ -140,7 +59,7 @@ export function TimerView({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [startTime, targetDurationSeconds, isCountdown, handleStop]);
+  }, [startTime, targetDurationSeconds, isCountdown]);
 
   useEffect(() => {
     const prev = document.title;
@@ -150,38 +69,10 @@ export function TimerView({
     };
   }, [display, habitName]);
 
-  if (successData) {
-    return (
-      <FullHeight className="relative">
-        <EmojiBubbles />
-        <div className="flex-1 flex flex-col items-center justify-center text-center px-6 animate-slam-down relative z-10">
-          <p className="text-6xl mb-6">&#127942;</p>
-          <h1 className="text-2xl font-bold mb-3">Session Complete!</h1>
-          <p className="text-lg text-muted-foreground mb-6 max-w-xs">
-            {successData.message}
-          </p>
-          <p className="text-4xl font-mono font-light tracking-tight mb-2">
-            {formatTime(successData.durationSeconds)}
-          </p>
-          <p className="text-sm text-muted-foreground mb-10 truncate max-w-full px-4">
-            of {habitName}
-          </p>
-          <PressableButton
-            size="lg"
-            onClick={handleBack}
-            className="px-12 py-6 text-lg"
-          >
-            Back to Habits
-          </PressableButton>
-        </div>
-      </FullHeight>
-    );
-  }
-
   return (
     <FullHeight>
       <header className="flex items-center justify-between py-4">
-        <button onClick={handleBack} className="text-muted-foreground text-sm">
+        <button onClick={onBack} className="text-muted-foreground text-sm">
           &larr; Back
         </button>
         <span className="font-semibold truncate max-w-[50%]">{habitName}</span>

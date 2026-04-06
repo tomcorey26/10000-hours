@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
+import { useTimerStore } from "@/stores/timer-store";
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -16,6 +17,7 @@ vi.mock("@/hooks/use-habits", () => ({
   useAddHabit: () => ({ mutateAsync: mockMutateAsync }),
   useDeleteHabit: () => ({ mutate: mockMutate }),
   useStartTimer: () => ({ mutate: mockMutate }),
+  useStopTimer: () => ({ mutate: mockMutate }),
 }));
 
 vi.mock("@/hooks/use-feature-flags", () => ({
@@ -40,6 +42,10 @@ function makeHabit(
 describe("Dashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useTimerStore.setState({
+      activeTimer: null,
+      view: { type: "habits_list" },
+    });
   });
 
   it("renders habits in the order they are passed (newest first)", () => {
@@ -65,43 +71,22 @@ describe("Dashboard", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows active habit separately with clickable wrapper", () => {
-    const habits = [
-      makeHabit({
-        id: 1,
-        name: "Active Habit",
-        activeTimer: {
-          startTime: new Date().toISOString(),
-          targetDurationSeconds: null,
-        },
-      }),
-      makeHabit({ id: 2, name: "Inactive Habit" }),
-    ];
-
+  it("shows timer config when view is timer_config", () => {
+    useTimerStore.setState({
+      view: { type: "timer_config", habitId: 1, habitName: "Guitar" },
+    });
+    const habits = [makeHabit({ id: 1, name: "Guitar" })];
     render(<Dashboard initialHabits={habits} />);
-
-    expect(screen.getByText("Active Habit")).toBeInTheDocument();
-    expect(screen.getByText("Inactive Habit")).toBeInTheDocument();
+    expect(screen.getByText("Guitar")).toBeInTheDocument();
+    expect(screen.getByText("Choose timer mode")).toBeInTheDocument();
   });
 
-  it("navigates to /timer when clicking active habit card", async () => {
+  it("opens timer config when Start is clicked on a habit", async () => {
     const user = userEvent.setup();
-    const habits = [
-      makeHabit({
-        id: 1,
-        name: "Active Habit",
-        activeTimer: {
-          startTime: new Date().toISOString(),
-          targetDurationSeconds: null,
-        },
-      }),
-    ];
-
+    const habits = [makeHabit({ id: 1, name: "Guitar" })];
     render(<Dashboard initialHabits={habits} />);
 
-    const activeCard = screen.getByTestId("active-habit-card");
-    await user.click(activeCard);
-
-    expect(mockPush).toHaveBeenCalledWith("/timer");
+    await user.click(screen.getByText("Start"));
+    expect(useTimerStore.getState().view.type).toBe("timer_config");
   });
 });
