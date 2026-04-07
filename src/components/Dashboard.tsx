@@ -142,15 +142,6 @@ export function Dashboard({ initialHabits }: { initialHabits: Habit[] }) {
   const stopTimerApi = useStopTimer();
 
   const view = useTimerStore((s) => s.view);
-
-  // Clear success view when navigating away from /habits
-  useEffect(() => {
-    return () => {
-      if (useTimerStore.getState().view.type === "success") {
-        useTimerStore.getState().dismissSuccess();
-      }
-    };
-  }, []);
   const activeTimer = useTimerStore((s) => s.activeTimer);
   const openConfig = useTimerStore((s) => s.openConfig);
   const closeConfig = useTimerStore((s) => s.closeConfig);
