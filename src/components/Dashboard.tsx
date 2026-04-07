@@ -41,6 +41,11 @@ function playFanfare() {
   } catch {}
 }
 
+const staggerItem = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0 },
+};
+
 function SuccessScreen({ durationSeconds }: { durationSeconds: number }) {
   const { trigger } = useHaptics();
   const dismissSuccess = useTimerStore((s) => s.dismissSuccess);
@@ -65,26 +70,59 @@ function SuccessScreen({ durationSeconds }: { durationSeconds: number }) {
   return (
     <div className="relative flex-1 flex flex-col">
       <EmojiBubbles />
-      <div className="flex-1 flex flex-col items-center justify-center text-center px-6 animate-slam-down relative z-10">
-        <p className="text-6xl mb-6">&#127942;</p>
-        <h1 className="text-2xl font-bold mb-3">Session Complete!</h1>
-        <p className="text-lg text-muted-foreground mb-6 max-w-xs">
-          {message}
-        </p>
-        <p className="text-4xl font-mono font-light tracking-tight mb-10">
-          {formatTime(durationSeconds)}
-        </p>
-        <PressableButton
-          size="lg"
-          onClick={() => {
-            trigger("light");
-            dismissSuccess();
+      <motion.div
+        className="flex-1 flex flex-col items-center justify-center text-center px-6 relative z-10"
+        initial="hidden"
+        animate="visible"
+        transition={{ staggerChildren: 0.15, delayChildren: 0.1 }}
+      >
+        <motion.p
+          className="text-6xl mb-6"
+          variants={{
+            hidden: { opacity: 0, scale: 0.3 },
+            visible: { opacity: 1, scale: 1 },
           }}
-          className="px-12 py-6 text-lg"
+          transition={{ type: "spring", stiffness: 200, damping: 12 }}
         >
-          Back to Habits
-        </PressableButton>
-      </div>
+          &#127942;
+        </motion.p>
+        <motion.h1
+          className="text-2xl font-bold mb-3"
+          variants={staggerItem}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+          Session Complete!
+        </motion.h1>
+        <motion.p
+          className="text-lg text-muted-foreground mb-6 max-w-xs"
+          variants={staggerItem}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+          {message}
+        </motion.p>
+        <motion.p
+          className="text-4xl font-mono font-light tracking-tight mb-10"
+          variants={staggerItem}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+          {formatTime(durationSeconds)}
+        </motion.p>
+        <motion.div
+          variants={staggerItem}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+          <PressableButton
+            size="lg"
+            onClick={() => {
+              trigger("light");
+              dismissSuccess();
+            }}
+            className="px-12 py-6 text-lg"
+          >
+            Back to Habits
+          </PressableButton>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
@@ -104,6 +142,15 @@ export function Dashboard({ initialHabits }: { initialHabits: Habit[] }) {
   const stopTimerApi = useStopTimer();
 
   const view = useTimerStore((s) => s.view);
+
+  // Clear success view when navigating away from /habits
+  useEffect(() => {
+    return () => {
+      if (useTimerStore.getState().view.type === "success") {
+        useTimerStore.getState().dismissSuccess();
+      }
+    };
+  }, []);
   const activeTimer = useTimerStore((s) => s.activeTimer);
   const openConfig = useTimerStore((s) => s.openConfig);
   const closeConfig = useTimerStore((s) => s.closeConfig);
