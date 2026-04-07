@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import { formatTime } from "@/lib/format";
@@ -20,11 +19,9 @@ function sendBrowserNotification(title: string, body: string) {
 
 export function CountdownAutoStop() {
   const queryClient = useQueryClient();
-  const pathname = usePathname();
   const stoppingRef = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeTimer = useTimerStore((s) => s.activeTimer);
-  const stopTimer = useTimerStore((s) => s.stopTimer);
 
   useEffect(() => {
     // Only poll for countdowns
@@ -49,18 +46,17 @@ export function CountdownAutoStop() {
           "/api/timer/stop",
           { method: "POST" },
         );
-        stopTimer(result.durationSeconds);
 
-        // Only show toast/notification when NOT on habits page
-        // (the SuccessScreen handles feedback there)
-        if (!pathname.startsWith("/habits")) {
-          const message = `Your ${formatTime(result.durationSeconds)} ${habitName} session was recorded`;
-          toast.success(message);
-          sendBrowserNotification("Session Complete", message);
-          try {
-            new Audio("/fanfare.mp3").play().catch(() => {});
-          } catch {}
-        }
+        const message = `Your ${formatTime(result.durationSeconds)} ${habitName} session was recorded`;
+        toast.success(message);
+        sendBrowserNotification("Session Complete", message);
+        try {
+          new Audio("/fanfare.mp3").play().catch(() => {});
+        } catch {}
+
+        // Go back to habits list (not success screen) since the timer
+        // finished in the background, not while the user was watching
+        useTimerStore.getState().resetTimer();
 
         queryClient.invalidateQueries({ queryKey: queryKeys.habits.all });
         queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all });
@@ -76,7 +72,7 @@ export function CountdownAutoStop() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [activeTimer, queryClient, stopTimer, pathname]);
+  }, [activeTimer, queryClient]);
 
   return null;
 }
