@@ -2,13 +2,22 @@
 
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
 import { queryKeys } from "@/lib/query-keys";
 import { useTimerStore } from "@/stores/timer-store";
 import type { Habit } from "@/lib/types";
 
 export function TimerHydrator() {
   const queryClient = useQueryClient();
+  const pathname = usePathname();
   const hydratedRef = useRef(false);
+
+  // Dismiss success view when navigating away from /habits
+  useEffect(() => {
+    if (!pathname.startsWith("/habits") && useTimerStore.getState().view.type === "success") {
+      useTimerStore.getState().dismissSuccess();
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (hydratedRef.current) return;

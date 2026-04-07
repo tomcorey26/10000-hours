@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useHaptics } from '@/hooks/use-haptics';
-import { useTimerStore } from '@/stores/timer-store';
 
 const TABS = [
   { href: '/habits', label: 'Habits' },
@@ -15,7 +14,6 @@ const TABS = [
 export function TabNav({ orientation = 'horizontal' }: { orientation?: 'horizontal' | 'vertical' }) {
   const pathname = usePathname();
   const { trigger } = useHaptics();
-  const dismissSuccess = useTimerStore((s) => s.dismissSuccess);
 
   if (orientation === 'vertical') {
     return (
@@ -24,7 +22,7 @@ export function TabNav({ orientation = 'horizontal' }: { orientation?: 'horizont
           <Link
             key={tab.href}
             href={tab.href}
-            onClick={() => { trigger('selection'); dismissSuccess(); }}
+            onClick={() => trigger('selection')}
             className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
               pathname.startsWith(tab.href)
                 ? 'bg-muted'
