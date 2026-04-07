@@ -11,7 +11,12 @@ export function MiniTimerBar() {
   const pathname = usePathname();
   const { trigger } = useHaptics();
   const activeTimer = useTimerStore((s) => s.activeTimer);
-  const [display, setDisplay] = useState("");
+  const [display, setDisplay] = useState(() => {
+    if (!activeTimer) return "";
+    return activeTimer.targetDurationSeconds !== null
+      ? formatRemaining(activeTimer.startTime, activeTimer.targetDurationSeconds)
+      : formatElapsed(activeTimer.startTime);
+  });
 
   useEffect(() => {
     if (!activeTimer) return;

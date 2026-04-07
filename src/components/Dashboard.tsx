@@ -175,10 +175,7 @@ export function Dashboard({ initialHabits }: { initialHabits: Habit[] }) {
       },
       {
         onError: () => {
-          useTimerStore.setState({
-            activeTimer: null,
-            view: { type: "habits_list" },
-          });
+          useTimerStore.getState().resetTimer();
           toast.error("Failed to start timer");
         },
       },
@@ -238,12 +235,7 @@ export function Dashboard({ initialHabits }: { initialHabits: Habit[] }) {
         todaySeconds={habit?.todaySeconds ?? 0}
         streak={habit?.streak ?? 0}
         onStop={handleStop}
-        onBack={() =>
-          useTimerStore.setState({
-            activeTimer: null,
-            view: { type: "habits_list" },
-          })
-        }
+        onBack={() => useTimerStore.getState().showHabits()}
       />
     );
   }

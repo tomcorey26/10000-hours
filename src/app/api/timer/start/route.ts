@@ -3,10 +3,23 @@ import { z } from "zod";
 import { getSessionUserId } from "@/lib/auth";
 import { startTimerForUser } from "@/server/db/timers";
 
+const MAX_CLOCK_SKEW_MS = 30_000;
+
 const startSchema = z.object({
   habitId: z.number().int().positive(),
-  targetDurationSeconds: z.number().int().min(5).optional(),
-  startTime: z.string().datetime().optional(),
+  targetDurationSeconds: z.number().int().min(5).max(86400).optional(),
+  startTime: z
+    .string()
+    .datetime()
+    .optional()
+    .refine(
+      (s) => {
+        if (!s) return true;
+        const diff = Date.now() - new Date(s).getTime();
+        return diff >= 0 && diff <= MAX_CLOCK_SKEW_MS;
+      },
+      "startTime must be within 30s of server time",
+    ),
 });
 
 export async function POST(request: Request) {

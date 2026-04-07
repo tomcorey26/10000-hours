@@ -24,7 +24,3 @@ export function formatRemaining(startTimeIso: string, targetDurationSeconds: num
   return `${h}:${m}:${s}`;
 }
 
-export function isCountdownComplete(startTimeIso: string, targetDurationSeconds: number): boolean {
-  const elapsed = Math.floor((Date.now() - new Date(startTimeIso).getTime()) / 1000);
-  return elapsed >= targetDurationSeconds;
-}

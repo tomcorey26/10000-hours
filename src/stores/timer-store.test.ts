@@ -72,6 +72,18 @@ describe("timer store", () => {
     });
   });
 
+  describe("showHabits", () => {
+    it("sets view to habits_list without clearing activeTimer", () => {
+      useTimerStore
+        .getState()
+        .startTimer({ habitId: 1, habitName: "Guitar" });
+      useTimerStore.getState().showHabits();
+      const state = useTimerStore.getState();
+      expect(state.view).toEqual({ type: "habits_list" });
+      expect(state.activeTimer).not.toBeNull();
+    });
+  });
+
   describe("dismissSuccess", () => {
     it("sets view back to habits_list", () => {
       useTimerStore
@@ -80,6 +92,18 @@ describe("timer store", () => {
       useTimerStore.getState().stopTimer(120);
       useTimerStore.getState().dismissSuccess();
       expect(useTimerStore.getState().view).toEqual({ type: "habits_list" });
+    });
+  });
+
+  describe("resetTimer", () => {
+    it("clears activeTimer and sets view to habits_list", () => {
+      useTimerStore
+        .getState()
+        .startTimer({ habitId: 1, habitName: "Guitar" });
+      useTimerStore.getState().resetTimer();
+      const state = useTimerStore.getState();
+      expect(state.activeTimer).toBeNull();
+      expect(state.view).toEqual({ type: "habits_list" });
     });
   });
 
