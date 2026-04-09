@@ -18,13 +18,19 @@ vi.mock("next/navigation", () => ({
   usePathname: vi.fn(() => "/habits"),
 }));
 
+vi.mock("@/lib/timer", () => ({
+  isCountdownComplete: vi.fn(() => false),
+}));
+
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { usePathname } from "next/navigation";
+import { isCountdownComplete } from "@/lib/timer";
 import { TimerSync } from "./TimerSync";
 
 const mockedApi = vi.mocked(api);
 const mockedPathname = vi.mocked(usePathname);
+const mockedIsCountdownComplete = vi.mocked(isCountdownComplete);
 
 function createWrapper() {
   const qc = new QueryClient({
@@ -144,6 +150,109 @@ describe("TimerSync", () => {
       await waitFor(() => {
         expect(useTimerStore.getState().view).toEqual({ type: "habits_list" });
       });
+    });
+  });
+
+  describe("client-side countdown polling", () => {
+    it("calls POST /api/timer/stop and shows a toast when countdown is complete", async () => {
+      // First call: habits query; subsequent: POST /api/timer/stop
+      mockedApi.mockImplementation((url: string) => {
+        if (url === "/api/habits")
+          return Promise.resolve({ habits: [], autoStopped: null });
+        if (url === "/api/timer/stop")
+          return Promise.resolve({ durationSeconds: 600 });
+        return Promise.resolve({});
+      });
+
+      mockedIsCountdownComplete.mockReturnValue(true);
+
+      useTimerStore.setState({
+        activeTimer: {
+          habitId: 1,
+          habitName: "Guitar",
+          startTime: "2026-04-09T12:00:00.000Z",
+          targetDurationSeconds: 600,
+        },
+        timerViewMounted: false,
+      });
+
+      renderHook(() => TimerSync(), { wrapper: createWrapper() });
+
+      await waitFor(
+        () => {
+          expect(mockedApi).toHaveBeenCalledWith("/api/timer/stop", {
+            method: "POST",
+          });
+          expect(toast.success).toHaveBeenCalledWith(
+            expect.stringContaining("Guitar session was recorded"),
+          );
+        },
+        { timeout: 3000 },
+      );
+
+      expect(useTimerStore.getState().activeTimer).toBeNull();
+    });
+
+    it("does NOT poll when timerViewMounted is true", async () => {
+      mockedApi.mockImplementation(() =>
+        Promise.resolve({ habits: [], autoStopped: null }),
+      );
+      mockedIsCountdownComplete.mockReturnValue(true);
+
+      useTimerStore.setState({
+        activeTimer: {
+          habitId: 1,
+          habitName: "Guitar",
+          startTime: "2026-04-09T12:00:00.000Z",
+          targetDurationSeconds: 600,
+        },
+        timerViewMounted: true,
+      });
+
+      renderHook(() => TimerSync(), { wrapper: createWrapper() });
+
+      // Wait for habits query to settle
+      await waitFor(() => {
+        expect(mockedApi).toHaveBeenCalledWith("/api/habits");
+      });
+
+      // Should never have called stop
+      expect(mockedApi).not.toHaveBeenCalledWith("/api/timer/stop", {
+        method: "POST",
+      });
+    });
+
+    it("resets the timer on API failure", async () => {
+      mockedApi.mockImplementation((url: string) => {
+        if (url === "/api/habits")
+          return Promise.resolve({ habits: [], autoStopped: null });
+        if (url === "/api/timer/stop")
+          return Promise.reject(new Error("Network error"));
+        return Promise.resolve({});
+      });
+
+      mockedIsCountdownComplete.mockReturnValue(true);
+
+      useTimerStore.setState({
+        activeTimer: {
+          habitId: 1,
+          habitName: "Guitar",
+          startTime: "2026-04-09T12:00:00.000Z",
+          targetDurationSeconds: 600,
+        },
+        timerViewMounted: false,
+      });
+
+      renderHook(() => TimerSync(), { wrapper: createWrapper() });
+
+      await waitFor(
+        () => {
+          expect(useTimerStore.getState().activeTimer).toBeNull();
+        },
+        { timeout: 3000 },
+      );
+
+      expect(toast.success).not.toHaveBeenCalled();
     });
   });
 });
