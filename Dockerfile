@@ -46,5 +46,6 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Fix volume permissions at startup (runs as root), then drop to nextjs
-CMD chown -R nextjs:nodejs /app/data && su -s /bin/sh nextjs -c "node_modules/.bin/drizzle-kit migrate && node server.js"
+USER nextjs
+
+CMD ["sh", "-c", "node_modules/.bin/drizzle-kit migrate && node server.js"]

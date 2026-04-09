@@ -19,6 +19,8 @@ export async function verifyPassword(
 export async function createSessionToken(userId: number): Promise<string> {
   return new SignJWT({ userId })
     .setProtectedHeader({ alg: "HS256" })
+    .setIssuer("10000-hours")
+    .setAudience("10000-hours")
     .setExpirationTime("30d")
     .sign(JWT_SECRET);
 }
@@ -27,7 +29,10 @@ export async function verifySessionToken(
   token: string,
 ): Promise<{ userId: number } | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, JWT_SECRET, {
+      issuer: "10000-hours",
+      audience: "10000-hours",
+    });
     return { userId: payload.userId as number };
   } catch {
     return null;
