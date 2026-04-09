@@ -200,6 +200,46 @@ describe("TimerSync", () => {
       expect(toast.success).not.toHaveBeenCalled();
     });
 
+    it("only calls stop once even when multiple intervals fire", async () => {
+      let stopCallCount = 0;
+      mockedApi.mockImplementation((url: string) => {
+        if (url === "/api/habits")
+          return Promise.resolve({ habits: [], autoStopped: null });
+        if (url === "/api/timer/stop") {
+          stopCallCount++;
+          // Simulate slow response so multiple intervals fire while in-flight
+          return new Promise((resolve) =>
+            setTimeout(() => resolve({ durationSeconds: 600 }), 2000),
+          );
+        }
+        return Promise.resolve({});
+      });
+
+      mockedIsCountdownComplete.mockReturnValue(true);
+
+      useTimerStore.setState({
+        activeTimer: {
+          habitId: 1,
+          habitName: "Guitar",
+          startTime: "2026-04-09T12:00:00.000Z",
+          targetDurationSeconds: 600,
+        },
+        timerViewMounted: false,
+      });
+
+      renderHook(() => TimerSync(), { wrapper: createWrapper() });
+
+      // Wait long enough for several intervals to fire while stop is in-flight
+      await waitFor(
+        () => {
+          expect(useTimerStore.getState().activeTimer).toBeNull();
+        },
+        { timeout: 5000 },
+      );
+
+      expect(stopCallCount).toBe(1);
+    });
+
     it("resets the timer on API failure", async () => {
       mockedApi.mockImplementation((url: string) => {
         if (url === "/api/habits")

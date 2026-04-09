@@ -39,7 +39,7 @@ export async function getHabitsForUser(userId: number): Promise<Habit[]> {
         db
           .select()
           .from(activeTimers)
-          .where(eq(activeTimers.habitId, habit.id))
+          .where(and(eq(activeTimers.habitId, habit.id), eq(activeTimers.userId, userId)))
           .get(),
         computeStreak(habit.id),
       ]);

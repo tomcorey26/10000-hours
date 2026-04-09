@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getSessionUserId } from "@/lib/auth";
 import { startTimerForUser } from "@/server/db/timers";
 
-const MAX_CLOCK_SKEW_MS = 30_000;
+const MAX_CLOCK_SKEW_MS = 5_000;
 
 const startSchema = z.object({
   habitId: z.number().int().positive(),
