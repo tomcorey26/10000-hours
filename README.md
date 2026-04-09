@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<p align="center">
+  <img src="public/web-app-manifest-512x512.png" alt="GrindLog" width="120" height="120" style="border-radius: 24px;" />
+</p>
 
-## Getting Started
+<h1 align="center">GrindLog</h1>
 
-First, run the development server:
+<p align="center">
+  <em>A workout tracker, but for skills.</em>
+</p>
+
+<p align="center">
+  Build practice routines for guitar, coding, art — anything you want to master.<br/>
+  Track every session. Log the grind. Watch mastery get closer.
+</p>
+
+---
+
+## The Idea
+
+The "10,000 hours" rule says it takes roughly 10,000 hours of deliberate practice to master a skill. Whether or not the exact number holds up, the core truth is real: consistent, tracked practice is how you get better at anything.
+
+GrindLog is a PWA I built to scratch my own itch — I wanted a simple way to time my practice sessions across multiple skills, stack them into daily routines, and actually see the hours add up over time. Think of it like a gym tracker, but for your brain.
+
+## What It Does
+
+- **Routines** — Stack skills into daily practice blocks (guitar 30 min, coding 45 min, reading 15 min) like sets in a workout
+- **Timer** — Stopwatch mode for flow state, countdown mode for focused blocks. Just hit play
+- **Streaks** — Daily streaks keep you accountable. Show up, log your time, keep the chain going
+- **Rankings** — See your skills ranked by total hours logged. Calendar heat maps show your consistency
+- **Sessions** — Full history of every practice session with duration, date, and mode
+
+## Tech Stack
+
+This project was a playground for me to go deep on a modern full-stack setup:
+
+| Layer | Tech |
+|-------|------|
+| **Framework** | Next.js 16 (App Router) with React 19 |
+| **Language** | TypeScript |
+| **Styling** | Tailwind CSS 4 + Radix UI primitives |
+| **Animations** | Framer Motion |
+| **State** | Zustand + TanStack React Query |
+| **Database** | SQLite via Drizzle ORM |
+| **Auth** | Custom JWT implementation (jose + bcrypt) |
+| **Validation** | Zod + React Hook Form |
+| **Testing** | Playwright (E2E) + Vitest (Unit) |
+
+## Running Locally
 
 ```bash
+# Clone and install
+git clone https://github.com/tomcorey26/10000-hours.git
+cd 10000-hours
+npm install
+
+# Set up environment
+# Create a .env file with:
+#   DATABASE_URL=file:local.db
+#   JWT_SECRET=your-secret-here
+
+# Run database migrations
+npx drizzle-kit push
+
+# Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/              # Next.js pages and API routes
+│   ├── (app)/        # Authenticated app (habits, sessions, rankings, routines)
+│   ├── api/          # REST API (auth, habits, sessions, timer)
+│   └── login/        # Auth pages
+├── components/       # React components (timers, habit cards, modals, UI)
+├── db/               # Drizzle schema and database config
+├── hooks/            # Custom React hooks
+├── stores/           # Zustand state stores
+└── lib/              # Utilities and helpers
+```
 
-## Learn More
+## What I Learned
 
-To learn more about Next.js, take a look at the following resources:
+Building this taught me a lot about real-time state sync (keeping a running timer consistent between client, server, and database), optimistic UI updates with TanStack Query, and structuring a Next.js app that feels snappy as a native mobile app (PWA + haptic feedback + smooth animations).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<p align="center">
+  Built by <a href="https://github.com/tomcorey26">Tom Corey</a>
+</p>
