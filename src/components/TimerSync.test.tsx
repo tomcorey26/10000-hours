@@ -71,8 +71,7 @@ describe("TimerSync", () => {
             },
           },
         ],
-        autoStopped: null,
-      });
+              });
 
       renderHook(() => TimerSync(), { wrapper: createWrapper() });
 
@@ -92,8 +91,7 @@ describe("TimerSync", () => {
         habits: [
           { id: 1, name: "Guitar", todaySeconds: 0, totalSeconds: 0, streak: 0, activeTimer: null },
         ],
-        autoStopped: null,
-      });
+              });
 
       renderHook(() => TimerSync(), { wrapper: createWrapper() });
 
@@ -104,41 +102,11 @@ describe("TimerSync", () => {
     });
   });
 
-  describe("server auto-stop toast", () => {
-    it("shows toast when autoStopped is present in response", async () => {
-      mockedApi.mockResolvedValueOnce({
-        habits: [
-          { id: 1, name: "Guitar", todaySeconds: 0, totalSeconds: 0, streak: 0, activeTimer: null },
-        ],
-        autoStopped: { habitName: "Guitar", durationSeconds: 300 },
-      });
-
-      useTimerStore.setState({
-        activeTimer: {
-          habitId: 1,
-          habitName: "Guitar",
-          startTime: "2026-04-09T12:00:00.000Z",
-          targetDurationSeconds: 300,
-        },
-      });
-
-      renderHook(() => TimerSync(), { wrapper: createWrapper() });
-
-      await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith(
-          expect.stringContaining("Guitar session was auto-recorded"),
-        );
-      });
-      expect(useTimerStore.getState().activeTimer).toBeNull();
-    });
-  });
-
   describe("dismiss success on nav", () => {
     it("dismisses success view when navigating away from /habits", async () => {
       mockedApi.mockResolvedValueOnce({
         habits: [],
-        autoStopped: null,
-      });
+              });
 
       useTimerStore.setState({
         view: { type: "success", durationSeconds: 120 },
@@ -195,7 +163,7 @@ describe("TimerSync", () => {
 
     it("does NOT poll when timerViewMounted is true", async () => {
       mockedApi.mockImplementation(() =>
-        Promise.resolve({ habits: [], autoStopped: null }),
+        Promise.resolve({ habits: [] }),
       );
       mockedIsCountdownComplete.mockReturnValue(true);
 

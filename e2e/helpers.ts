@@ -1,70 +1,56 @@
-import { Page, expect } from '@playwright/test';
-import { APP_NAME } from '../src/data/app';
+import { Page } from '@playwright/test';
 
 /**
- * Signs up a new user with a unique email and returns the email used.
- * Ends on the dashboard page with the app name heading visible.
+ * Create a habit via the real API. Returns the habit id.
  */
-export async function signUp(page: Page) {
-  const email = `test-${Date.now()}@example.com`;
-  const password = 'testpass123';
-
-  await page.goto('/login');
-
-  // Switch from Sign In (default) to Sign Up mode
-  await page.getByRole('button', { name: 'Sign up' }).click();
-
-  // Fill in the sign-up form
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill(password);
-
-  // Submit the form
-  await page.getByRole('button', { name: 'Sign Up' }).click();
-
-  // Wait for dashboard to load — the heading appears in Dashboard's header
-  await page.getByRole('heading', { name: APP_NAME }).waitFor();
-
-  return email;
+export async function createHabit(page: Page, name: string): Promise<number> {
+  const res = await page.request.post('/api/habits', {
+    data: { name },
+  });
+  const { habit } = await res.json();
+  return habit.id;
 }
 
 /**
- * Adds a habit with the given name from the dashboard.
- * Assumes the user is already signed in and on the dashboard.
+ * Start a timer via the real API.
  */
-export async function addHabit(page: Page, name: string) {
-  await page.getByPlaceholder('New habit name...').fill(name);
-  await page.getByRole('button', { name: 'Add' }).click();
-
-  // Wait for the habit to appear in the list
-  await page.getByText(name).waitFor();
+export async function startTimer(
+  page: Page,
+  habitId: number,
+  opts?: { targetDurationSeconds?: number },
+) {
+  await page.request.post('/api/timer/start', {
+    data: { habitId, ...opts },
+  });
 }
 
 /**
- * Starts a stopwatch session for the first habit's Start button.
- * Uses the unified timer start screen (toggle + Start button).
+ * Stop any active timer via the real API (cleanup).
  */
-export async function startStopwatch(page: Page) {
-  await page.getByRole('button', { name: /^start$/i }).click();
-  // Stopwatch is default mode, just click Start
-  await page.getByRole('button', { name: /^start$/i }).click();
-  await expect(page.getByText('Recording...')).toBeVisible();
+export async function stopTimer(page: Page) {
+  await page.request.post('/api/timer/stop');
 }
 
 /**
- * Starts a stopwatch for a specific habit when multiple exist.
+ * Delete all habits for the current user (cleanup).
  */
-export async function startStopwatchFirst(page: Page) {
-  await page.locator('button', { hasText: /start/i }).first().click();
-  await page.getByRole('button', { name: /^start$/i }).click();
-  await expect(page.getByText('Recording...')).toBeVisible();
+export async function deleteAllHabits(page: Page) {
+  const res = await page.request.get('/api/habits');
+  const { habits } = await res.json();
+  for (const habit of habits) {
+    await page.request.delete(`/api/habits/${habit.id}`);
+  }
 }
 
 /**
- * Stops the currently running timer session.
- * Waits for the success screen to appear.
+ * Intercept POST /api/timer/stop to track how many times it's called.
+ * The request still hits the real server.
  */
-export async function stopSession(page: Page) {
-  await page.getByRole('button', { name: /end session/i }).click();
-  await page.getByRole('button', { name: /back to habits/i }).waitFor();
-  await page.getByRole('button', { name: /back to habits/i }).click();
+export async function trackStopCalls(page: Page) {
+  const calls: { timestamp: number }[] = [];
+  await page.route('**/api/timer/stop', async (route) => {
+    calls.push({ timestamp: Date.now() });
+    await route.continue();
+  });
+  return calls;
 }

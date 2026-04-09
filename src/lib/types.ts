@@ -10,11 +10,6 @@ export type Habit = {
   } | null;
 };
 
-export type AutoStoppedSession = {
-  habitName: string;
-  durationSeconds: number;
-};
-
 export type Session = {
   id: number;
   habitName: string;

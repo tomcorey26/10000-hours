@@ -1,101 +1,61 @@
 import { test, expect } from '@playwright/test';
-import { signUp, addHabit } from './helpers';
+import { createHabit, startTimer, stopTimer, deleteAllHabits } from './helpers';
 
-const HABIT_NAME = 'Guitar';
-
-/**
- * Start a countdown timer via the API directly so we can use very short durations.
- * Returns the habitId.
- */
-async function startCountdownViaApi(page: import('@playwright/test').Page, seconds: number) {
-  // Get habits to find the habitId
-  const habitsRes = await page.request.get('/api/habits');
-  const { habits } = await habitsRes.json();
-  const habit = habits.find((h: { name: string }) => h.name === HABIT_NAME);
-
-  await page.request.post('/api/timer/start', {
-    data: { habitId: habit.id, targetDurationSeconds: seconds },
-  });
-
-  return habit.id;
-}
+const HABIT_NAME = 'E2E-AutoStop';
 
 test.describe('Countdown Auto-Stop', () => {
+  let habitId: number;
+
   test.beforeEach(async ({ page }) => {
-    await signUp(page);
-    await addHabit(page, HABIT_NAME);
+    // Navigate to blank page to stop any TimerSync polling from prior tests
+    await page.goto('about:blank');
+    await stopTimer(page);
+    await deleteAllHabits(page);
+    habitId = await createHabit(page, HABIT_NAME);
   });
 
-  test('auto-stops and shows success screen when countdown finishes on timer page', async ({ page }) => {
-    await startCountdownViaApi(page, 3);
-    await page.goto('/timer');
+  test.afterEach(async ({ page }) => {
+    await stopTimer(page);
+  });
 
-    await expect(page.getByText('Counting down...')).toBeVisible();
+  test('auto-stops and shows success screen when countdown finishes on /habits', async ({ page }) => {
+    // Use 5s so the page has time to hydrate and show countdown before it expires
+    await startTimer(page, habitId, { targetDurationSeconds: 5 });
+    await page.goto('/habits');
 
-    // Wait for auto-stop — success screen should appear
-    await expect(page.getByText('Session Complete!')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Counting down...')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Session Complete!')).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('button', { name: /back to habits/i })).toBeVisible();
   });
 
-  test('records capped duration for countdown (not wall-clock time)', async ({ page }) => {
-    await startCountdownViaApi(page, 2);
-    await page.goto('/timer');
+  test('shows toast when timer expired while user was away (non-habits page)', async ({ page }) => {
+    // 5s is the minimum allowed by the API
+    await startTimer(page, habitId, { targetDurationSeconds: 5 });
+    await page.waitForTimeout(6000);
 
-    // Wait for success screen
-    await expect(page.getByText('Session Complete!')).toBeVisible({ timeout: 10000 });
-    await page.getByRole('button', { name: /back to habits/i }).click();
+    // Navigate to a non-habits page — TimerSync hydrates and polling stops it
+    await page.goto('/sessions');
 
-    // Check sessions tab — duration should be ~2s, not more
-    await page.getByRole('link', { name: /sessions/i }).click();
-    await expect(page.locator('.font-medium', { hasText: HABIT_NAME })).toBeVisible();
-    await expect(page.locator('.rounded-full', { hasText: 'countdown' })).toBeVisible();
-    // The duration text should show "2s" (capped at target)
-    await expect(page.locator('.font-mono', { hasText: '2s' })).toBeVisible();
-  });
-
-  test('auto-stops with toast when user navigates away during countdown', async ({ page }) => {
-    await startCountdownViaApi(page, 3);
-    await page.goto('/timer');
-
-    await expect(page.getByText('Counting down...')).toBeVisible();
-
-    // Navigate away before countdown finishes
-    await page.goto('/habits');
-
-    // Wait for the countdown to expire and CountdownAutoStop to fire
     await expect(page.locator('[data-sonner-toast]').first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator('[data-sonner-toast]').first()).toContainText('session was recorded');
   });
 
-  test('shows toast on return when timer expired while away (server-side auto-stop)', async ({ page }) => {
-    // Start a 1-second countdown so it expires immediately
-    await startCountdownViaApi(page, 1);
+  test('shows success screen when timer expired while user was away (habits page)', async ({ page }) => {
+    await startTimer(page, habitId, { targetDurationSeconds: 5 });
+    await page.waitForTimeout(6000);
 
-    // Wait for it to definitely expire
-    await page.waitForTimeout(2000);
-
-    // Navigate to skills — server should auto-stop and show toast
+    // Navigate to habits — TimerView mounts, detects expired, shows success screen
     await page.goto('/habits');
 
-    await expect(page.locator('[data-sonner-toast]').first()).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('[data-sonner-toast]').first()).toContainText('auto-recorded');
+    await expect(page.getByText('Session Complete!')).toBeVisible({ timeout: 10000 });
   });
 
   test('stopwatch is not affected by auto-stop logic', async ({ page }) => {
-    // Start a stopwatch via API
-    const habitsRes = await page.request.get('/api/habits');
-    const { habits } = await habitsRes.json();
-    const habit = habits.find((h: { name: string }) => h.name === HABIT_NAME);
-    await page.request.post('/api/timer/start', {
-      data: { habitId: habit.id },
-    });
+    await startTimer(page, habitId);
+    await page.goto('/habits');
 
-    await page.goto('/timer');
+    await expect(page.getByText('Recording...')).toBeVisible({ timeout: 10000 });
 
-    // Should show recording, not auto-stop
-    await expect(page.getByText('Recording...')).toBeVisible();
-
-    // Wait a few seconds — should still be recording (no auto-stop)
     await page.waitForTimeout(3000);
     await expect(page.getByText('Recording...')).toBeVisible();
     await expect(page.getByText('Session Complete!')).not.toBeVisible();

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSessionUserId } from "@/lib/auth";
 import { createHabitForUser, getHabitsForUser } from "@/server/db/habits";
-import { autoStopExpiredCountdown } from "@/server/db/timers";
 
 const createHabitSchema = z.object({
   name: z.string().min(1).max(30),
@@ -13,9 +12,8 @@ export async function GET() {
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const autoStopped = await autoStopExpiredCountdown(userId);
   const habitsWithStats = await getHabitsForUser(userId);
-  return NextResponse.json({ habits: habitsWithStats, autoStopped });
+  return NextResponse.json({ habits: habitsWithStats });
 }
 
 export async function POST(request: Request) {
