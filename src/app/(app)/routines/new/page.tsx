@@ -1,19 +1,16 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getSessionUserId } from "@/lib/auth";
-import { getRoutinesForUser } from "@/server/db/routines";
-import { RoutinesView } from "@/components/RoutinesView";
 import { Spinner } from "@/components/Spinner";
+import { RoutineBuilderPage } from "@/components/RoutineBuilderPage";
 
-export default async function RoutinesPage() {
+export default async function NewRoutinePage() {
   const userId = await getSessionUserId();
   if (!userId) redirect("/login");
 
-  const routines = await getRoutinesForUser(userId);
-
   return (
     <Suspense fallback={<Spinner />}>
-      <RoutinesView initialRoutines={routines} />
+      <RoutineBuilderPage mode="create" />
     </Suspense>
   );
 }
