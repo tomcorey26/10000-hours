@@ -35,15 +35,36 @@ export const activeTimers = sqliteTable('active_timers', {
   targetDurationSeconds: integer('target_duration_seconds'),
 });
 
+export const routines = sqliteTable('routines', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const routineBlocks = sqliteTable('routine_blocks', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  routineId: integer('routine_id').notNull().references(() => routines.id, { onDelete: 'cascade' }),
+  habitId: integer('habit_id').notNull().references(() => habits.id, { onDelete: 'cascade' }),
+  sortOrder: integer('sort_order').notNull(),
+  notes: text('notes'),
+  sets: text('sets').notNull(), // JSON: [{durationSeconds, breakSeconds}]
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   habits: many(habits),
   activeTimers: many(activeTimers),
+  routines: many(routines),
 }));
 
 export const habitsRelations = relations(habits, ({ one, many }) => ({
   user: one(users, { fields: [habits.userId], references: [users.id] }),
   timeSessions: many(timeSessions),
   activeTimers: many(activeTimers),
+  routineBlocks: many(routineBlocks),
 }));
 
 export const timeSessionsRelations = relations(timeSessions, ({ one }) => ({
@@ -54,4 +75,14 @@ export const timeSessionsRelations = relations(timeSessions, ({ one }) => ({
 export const activeTimersRelations = relations(activeTimers, ({ one }) => ({
   habit: one(habits, { fields: [activeTimers.habitId], references: [habits.id] }),
   user: one(users, { fields: [activeTimers.userId], references: [users.id] }),
+}));
+
+export const routinesRelations = relations(routines, ({ one, many }) => ({
+  user: one(users, { fields: [routines.userId], references: [users.id] }),
+  blocks: many(routineBlocks),
+}));
+
+export const routineBlocksRelations = relations(routineBlocks, ({ one }) => ({
+  routine: one(routines, { fields: [routineBlocks.routineId], references: [routines.id] }),
+  habit: one(habits, { fields: [routineBlocks.habitId], references: [habits.id] }),
 }));
