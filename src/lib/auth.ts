@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
+import { APP_NAME } from "@/data/app";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 const COOKIE_NAME = "session";
@@ -19,8 +20,8 @@ export async function verifyPassword(
 export async function createSessionToken(userId: number): Promise<string> {
   return new SignJWT({ userId })
     .setProtectedHeader({ alg: "HS256" })
-    .setIssuer("10000-hours")
-    .setAudience("10000-hours")
+    .setIssuer(APP_NAME)
+    .setAudience(APP_NAME)
     .setExpirationTime("30d")
     .sign(JWT_SECRET);
 }
@@ -30,8 +31,8 @@ export async function verifySessionToken(
 ): Promise<{ userId: number } | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET, {
-      issuer: "10000-hours",
-      audience: "10000-hours",
+      issuer: APP_NAME,
+      audience: APP_NAME,
     });
     return { userId: payload.userId as number };
   } catch {

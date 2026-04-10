@@ -1,4 +1,4 @@
-# 10,000 Hours - Architecture
+# GrindLog - Architecture
 
 A habit tracking app for logging practice time toward skill mastery (the "10,000-hour rule").
 
