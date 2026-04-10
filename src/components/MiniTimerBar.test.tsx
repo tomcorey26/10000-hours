@@ -22,6 +22,7 @@ describe("MiniTimerBar", () => {
     useTimerStore.setState({
       activeTimer: null,
       view: { type: "habits_list" },
+      displayTime: "00:00:00",
     });
   });
 
@@ -38,10 +39,12 @@ describe("MiniTimerBar", () => {
         startTime: new Date().toISOString(),
         targetDurationSeconds: null,
       },
+      displayTime: "00:05:30",
       view: { type: "active_timer" },
     });
 
     render(<MiniTimerBar />);
     expect(screen.getByText("Guitar")).toBeInTheDocument();
+    expect(screen.getByText("00:05:30")).toBeInTheDocument();
   });
 });

@@ -1,40 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTimerStore } from "@/stores/timer-store";
 import { useHaptics } from "@/hooks/use-haptics";
-import { formatElapsed, formatRemaining } from "@/lib/format";
 
 export function MiniTimerBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { trigger } = useHaptics();
   const activeTimer = useTimerStore((s) => s.activeTimer);
-  const [display, setDisplay] = useState(() => {
-    if (!activeTimer) return "";
-    return activeTimer.targetDurationSeconds !== null
-      ? formatRemaining(activeTimer.startTime, activeTimer.targetDurationSeconds)
-      : formatElapsed(activeTimer.startTime);
-  });
-
-  useEffect(() => {
-    if (!activeTimer) return;
-
-    const update = () => {
-      setDisplay(
-        activeTimer.targetDurationSeconds !== null
-          ? formatRemaining(
-              activeTimer.startTime,
-              activeTimer.targetDurationSeconds,
-            )
-          : formatElapsed(activeTimer.startTime),
-      );
-    };
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, [activeTimer]);
+  const displayTime = useTimerStore((s) => s.displayTime);
 
   // Hidden when no timer or on /habits (which shows full timer view)
   if (!activeTimer || pathname.startsWith("/habits")) return null;
@@ -54,7 +29,7 @@ export function MiniTimerBar() {
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="font-mono text-sm">{display}</span>
+        <span className="font-mono text-sm">{displayTime}</span>
         <span className="text-xs text-muted-foreground">&rarr;</span>
       </div>
     </button>
