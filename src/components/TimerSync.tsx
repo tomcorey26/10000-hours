@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
-import { formatTime } from "@/lib/format";
+import { formatTime, formatElapsed, formatRemaining } from "@/lib/format";
 import { isCountdownComplete } from "@/lib/timer";
 import { useTimerStore } from "@/stores/timer-store";
 import type { Habit } from "@/lib/types";
@@ -115,6 +115,32 @@ export function TimerSync() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [activeTimer, queryClient]);
+
+  // --- Display time tick (single source of truth for all UI) ---
+  useEffect(() => {
+    if (!activeTimer) return;
+
+    const { startTime, targetDurationSeconds, habitName } = activeTimer;
+    const isCountdown = targetDurationSeconds !== null;
+    const prevTitle = document.title;
+
+    function tick() {
+      const time = isCountdown
+        ? formatRemaining(startTime, targetDurationSeconds!)
+        : formatElapsed(startTime);
+      const timesUp = isCountdown && time === "00:00:00";
+      useTimerStore.getState().setDisplayTime(time, timesUp);
+      document.title = `${time} — ${habitName}`;
+    }
+
+    tick(); // compute immediately — no flash of stale value
+    const id = setInterval(tick, 1000);
+
+    return () => {
+      clearInterval(id);
+      document.title = prevTitle;
+    };
+  }, [activeTimer]);
 
   return null;
 }
