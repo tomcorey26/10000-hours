@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { PressableButton } from "@/components/ui/pressable-button";
-import { formatTime, formatElapsed, formatRemaining } from "@/lib/format";
+import { formatTime } from "@/lib/format";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useTimerStore } from "@/stores/timer-store";
 import { FullHeight } from "@/components/ui/full-height";
 
 type Props = {
   habitName: string;
-  startTime: string;
   targetDurationSeconds: number | null;
   todaySeconds: number;
   streak: number;
@@ -19,7 +18,6 @@ type Props = {
 
 export function TimerView({
   habitName,
-  startTime,
   targetDurationSeconds,
   todaySeconds,
   streak,
@@ -29,17 +27,14 @@ export function TimerView({
   const isCountdown = targetDurationSeconds !== null;
   const { trigger } = useHaptics();
   const setTimerViewMounted = useTimerStore((s) => s.setTimerViewMounted);
+  const displayTime = useTimerStore((s) => s.displayTime);
+  const isTimesUp = useTimerStore((s) => s.isTimesUp);
 
   useEffect(() => {
     setTimerViewMounted(true);
     return () => setTimerViewMounted(false);
   }, [setTimerViewMounted]);
 
-  const [display, setDisplay] = useState(() =>
-    isCountdown
-      ? formatRemaining(startTime, targetDurationSeconds)
-      : formatElapsed(startTime),
-  );
   const stoppedRef = useRef(false);
 
   function handleStop() {
@@ -48,26 +43,6 @@ export function TimerView({
     trigger("buzz");
     onStop();
   }
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDisplay(
-        isCountdown
-          ? formatRemaining(startTime, targetDurationSeconds)
-          : formatElapsed(startTime),
-      );
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [startTime, targetDurationSeconds, isCountdown]);
-
-  useEffect(() => {
-    const prev = document.title;
-    document.title = `${display} — ${habitName}`;
-    return () => {
-      document.title = prev;
-    };
-  }, [display, habitName]);
 
   return (
     <FullHeight>
@@ -81,10 +56,10 @@ export function TimerView({
 
       <div className="flex-1 flex flex-col items-center justify-center">
         <p className="text-6xl font-mono font-light tracking-tight mb-3">
-          {display}
+          {displayTime}
         </p>
         <div className="flex items-center gap-2 mb-12">
-          {isCountdown && display === "00:00:00" ? (
+          {isTimesUp ? (
             <span className="text-sm font-semibold text-primary">
               Time&apos;s up!
             </span>

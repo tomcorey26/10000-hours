@@ -22,6 +22,12 @@ vi.mock("@/lib/timer", () => ({
   isCountdownComplete: vi.fn(() => false),
 }));
 
+vi.mock("@/lib/format", () => ({
+  formatTime: vi.fn((s: number) => `${s}s`),
+  formatElapsed: vi.fn(() => "00:01:00"),
+  formatRemaining: vi.fn(() => "00:09:00"),
+}));
+
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { usePathname } from "next/navigation";
@@ -46,6 +52,8 @@ beforeEach(() => {
     activeTimer: null,
     view: { type: "habits_list" },
     timerViewMounted: false,
+    displayTime: "00:00:00",
+    isTimesUp: false,
   });
   vi.clearAllMocks();
   mockedPathname.mockReturnValue("/habits");
@@ -271,6 +279,86 @@ describe("TimerSync", () => {
       );
 
       expect(toast.success).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("display time tick", () => {
+    it("updates displayTime in store for stopwatch timer", async () => {
+      mockedApi.mockResolvedValueOnce({ habits: [] });
+
+      useTimerStore.setState({
+        activeTimer: {
+          habitId: 1,
+          habitName: "Guitar",
+          startTime: "2026-04-09T12:00:00.000Z",
+          targetDurationSeconds: null,
+        },
+      });
+
+      renderHook(() => TimerSync(), { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(useTimerStore.getState().displayTime).toBe("00:01:00");
+      });
+    });
+
+    it("updates displayTime in store for countdown timer", async () => {
+      mockedApi.mockResolvedValueOnce({ habits: [] });
+
+      useTimerStore.setState({
+        activeTimer: {
+          habitId: 1,
+          habitName: "Guitar",
+          startTime: "2026-04-09T12:00:00.000Z",
+          targetDurationSeconds: 600,
+        },
+      });
+
+      renderHook(() => TimerSync(), { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(useTimerStore.getState().displayTime).toBe("00:09:00");
+      });
+    });
+
+    it("sets isTimesUp when countdown reaches 00:00:00", async () => {
+      const { formatRemaining } = await import("@/lib/format");
+      vi.mocked(formatRemaining).mockReturnValue("00:00:00");
+      mockedApi.mockResolvedValueOnce({ habits: [] });
+
+      useTimerStore.setState({
+        activeTimer: {
+          habitId: 1,
+          habitName: "Guitar",
+          startTime: "2026-04-09T12:00:00.000Z",
+          targetDurationSeconds: 600,
+        },
+      });
+
+      renderHook(() => TimerSync(), { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(useTimerStore.getState().isTimesUp).toBe(true);
+      });
+    });
+
+    it("updates document.title with display time and habit name", async () => {
+      mockedApi.mockResolvedValueOnce({ habits: [] });
+
+      useTimerStore.setState({
+        activeTimer: {
+          habitId: 1,
+          habitName: "Guitar",
+          startTime: "2026-04-09T12:00:00.000Z",
+          targetDurationSeconds: null,
+        },
+      });
+
+      renderHook(() => TimerSync(), { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(document.title).toBe("00:01:00 — Guitar");
+      });
     });
   });
 });

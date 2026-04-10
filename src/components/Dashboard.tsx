@@ -239,7 +239,6 @@ export function Dashboard({
     return (
       <TimerView
         habitName={activeTimer.habitName}
-        startTime={activeTimer.startTime}
         targetDurationSeconds={activeTimer.targetDurationSeconds}
         todaySeconds={habit?.todaySeconds ?? 0}
         streak={habit?.streak ?? 0}

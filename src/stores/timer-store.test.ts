@@ -5,6 +5,8 @@ beforeEach(() => {
   useTimerStore.setState({
     activeTimer: null,
     view: { type: "habits_list" },
+    displayTime: "00:00:00",
+    isTimesUp: false,
   });
 });
 
@@ -69,6 +71,8 @@ describe("timer store", () => {
       const state = useTimerStore.getState();
       expect(state.activeTimer).toBeNull();
       expect(state.view).toEqual({ type: "success", durationSeconds: 120 });
+      expect(state.displayTime).toBe("00:00:00");
+      expect(state.isTimesUp).toBe(false);
     });
   });
 
@@ -123,6 +127,21 @@ describe("timer store", () => {
       const state = useTimerStore.getState();
       expect(state.activeTimer).toBeNull();
       expect(state.view).toEqual({ type: "habits_list" });
+      expect(state.displayTime).toBe("00:00:00");
+      expect(state.isTimesUp).toBe(false);
+    });
+  });
+
+  describe("setDisplayTime", () => {
+    it("updates displayTime and isTimesUp", () => {
+      useTimerStore.getState().setDisplayTime("01:23:45", false);
+      expect(useTimerStore.getState().displayTime).toBe("01:23:45");
+      expect(useTimerStore.getState().isTimesUp).toBe(false);
+    });
+
+    it("sets isTimesUp to true", () => {
+      useTimerStore.getState().setDisplayTime("00:00:00", true);
+      expect(useTimerStore.getState().isTimesUp).toBe(true);
     });
   });
 
