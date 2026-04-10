@@ -171,12 +171,10 @@ export function Dashboard({
     trigger("medium");
     startTimer({ habitId, habitName, targetDurationSeconds });
 
-    const storeStartTime = useTimerStore.getState().activeTimer!.startTime;
     startTimerApi.mutate(
       {
         habitId,
         targetDurationSeconds,
-        startTime: storeStartTime,
       },
       {
         onError: () => {
