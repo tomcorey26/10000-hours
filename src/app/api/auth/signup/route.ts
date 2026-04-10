@@ -5,7 +5,7 @@ import { createUser, getUserByEmail } from "@/server/db/users";
 
 const signupSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(8).max(72),
 });
 
 export async function POST(request: Request) {
