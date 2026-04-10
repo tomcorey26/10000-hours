@@ -9,7 +9,6 @@ import { FullHeight } from "@/components/ui/full-height";
 
 type Props = {
   habitName: string;
-  startTime: string;
   targetDurationSeconds: number | null;
   todaySeconds: number;
   streak: number;
@@ -19,7 +18,6 @@ type Props = {
 
 export function TimerView({
   habitName,
-  startTime,
   targetDurationSeconds,
   todaySeconds,
   streak,
