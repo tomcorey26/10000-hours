@@ -1,61 +1,25 @@
+"use client";
+
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "sonner";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
-// ──────────────────────────────────────────────
-// Placeholder data — swap with real API data later.
-// Each routine has a name, description, and a list
-// of skills with target durations.
-// ──────────────────────────────────────────────
-type Skill = { name: string; duration: string };
-type Routine = {
-  id: string;
-  label: string;
-  name: string;
-  skills: Skill[];
-  totalDuration: string;
-};
-
-const PLACEHOLDER_ROUTINES: Routine[] = [
-  {
-    id: "1",
-    label: "MORNING ROUTINE",
-    name: "Daily Practice",
-    skills: [
-      { name: "Guitar", duration: "30 min" },
-      { name: "Coding", duration: "45 min" },
-      { name: "Reading", duration: "15 min" },
-    ],
-    totalDuration: "1h 30m",
-  },
-  {
-    id: "2",
-    label: "EVENING ROUTINE",
-    name: "Wind Down",
-    skills: [
-      { name: "Meditation", duration: "15 min" },
-      { name: "Drawing", duration: "30 min" },
-    ],
-    totalDuration: "45m",
-  },
-  {
-    id: "3",
-    label: "WEEKEND DEEP DIVE",
-    name: "Skill Sprint",
-    skills: [
-      { name: "Piano", duration: "60 min" },
-      { name: "Spanish", duration: "45 min" },
-      { name: "Cooking", duration: "30 min" },
-      { name: "Chess", duration: "20 min" },
-    ],
-    totalDuration: "2h 35m",
-  },
-  {
-    id: "4",
-    label: "QUICK SESSION",
-    name: "15-Min Focus",
-    skills: [{ name: "Typing", duration: "15 min" }],
-    totalDuration: "15m",
-  },
-];
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useRoutines, useDeleteRoutine } from "@/hooks/use-routines";
+import { useHaptics } from "@/hooks/use-haptics";
+import type { Routine } from "@/lib/types";
 
 const ROW_COLORS = [
   "bg-primary/20",
@@ -65,53 +29,124 @@ const ROW_COLORS = [
   "bg-primary/25",
 ];
 
-export function RoutineCard({ routine }: { routine: Routine }) {
+function RoutineCard({ routine }: { routine: Routine }) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const deleteRoutine = useDeleteRoutine();
+  const { trigger } = useHaptics();
+
+  const totalSeconds = routine.blocks.reduce(
+    (acc, block) =>
+      acc + block.sets.reduce((s, set) => s + set.durationSeconds + set.breakSeconds, 0),
+    0
+  );
+  const totalMinutes = Math.round(totalSeconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  const timeDisplay = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+  async function handleDelete() {
+    try {
+      await deleteRoutine.mutateAsync(routine.id);
+      trigger("success");
+      toast.success("Routine deleted");
+    } catch {
+      toast.error("Failed to delete routine");
+    }
+  }
+
   return (
-    <Card className="p-5">
-      <p className="text-xs font-mono text-muted-foreground mb-1">
-        {routine.label}
-      </p>
-      <p className="text-sm font-semibold text-foreground mb-4">
-        {routine.name}
-      </p>
-      <div className="space-y-3">
-        {routine.skills.map((skill, i) => (
-          <div
-            key={skill.name}
-            className={`flex items-center justify-between rounded-lg px-3 py-2.5 ${ROW_COLORS[i % ROW_COLORS.length]}`}
-          >
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-primary/40 flex items-center justify-center text-[10px] font-bold text-primary-foreground">
-                {i + 1}
-              </span>
-              <span className="text-sm font-medium text-foreground">
-                {skill.name}
-              </span>
-            </div>
-            <span className="text-xs font-mono text-muted-foreground">
-              {skill.duration}
+    <>
+      <Link href={`/routines/${routine.id}`}>
+        <Card className="p-5 hover:shadow-md transition-shadow cursor-pointer relative group">
+          {/* Action icons */}
+          <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Link
+              href={`/routines/${routine.id}/edit`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Button variant="ghost" size="icon-sm" aria-label="Edit routine">
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Delete routine"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowDeleteDialog(true);
+              }}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          <p className="text-sm font-semibold text-foreground mb-4">
+            {routine.name}
+          </p>
+          <div className="space-y-3">
+            {routine.blocks.map((block, i) => (
+              <div
+                key={block.id}
+                className={`flex items-center justify-between rounded-lg px-3 py-2.5 ${ROW_COLORS[i % ROW_COLORS.length]}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-primary/40 flex items-center justify-center text-[10px] font-bold text-primary-foreground">
+                    {i + 1}
+                  </span>
+                  <span className="text-sm font-medium text-foreground">
+                    {block.habitName}
+                  </span>
+                </div>
+                <span className="text-xs font-mono text-muted-foreground">
+                  {block.sets.length} {block.sets.length === 1 ? "set" : "sets"}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Total</span>
+            <span className="text-sm font-mono font-semibold text-foreground">
+              {timeDisplay}
             </span>
           </div>
-        ))}
-      </div>
-      <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">Total</span>
-        <span className="text-sm font-mono font-semibold text-foreground">
-          {routine.totalDuration}
-        </span>
-      </div>
-    </Card>
+        </Card>
+      </Link>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete routine?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete &ldquo;{routine.name}&rdquo;. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleDelete}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
-export function RoutinesView() {
-  // TODO: Replace with real data from API
-  const routines = PLACEHOLDER_ROUTINES;
+export function RoutinesView({ initialRoutines }: { initialRoutines?: Routine[] }) {
+  const { data: routines } = useRoutines(initialRoutines);
 
   return (
     <div className="py-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Your Routines</h2>
+        <Link href="/routines/new">
+          <Button size="sm">
+            <Plus className="h-4 w-4 mr-1" />
+            New Routine
+          </Button>
+        </Link>
       </div>
       {routines.length === 0 ? (
         <p className="text-center text-muted-foreground py-12">
@@ -119,9 +154,19 @@ export function RoutinesView() {
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {routines.map((routine) => (
-            <RoutineCard key={routine.id} routine={routine} />
-          ))}
+          <AnimatePresence initial={false}>
+            {routines.map((routine) => (
+              <motion.div
+                key={routine.id}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <RoutineCard routine={routine} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
