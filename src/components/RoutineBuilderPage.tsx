@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useRef } from "react";
 import { useRoutineBuilderStore } from "@/stores/routine-builder-store";
 import { RoutineBuilder } from "@/components/RoutineBuilder";
 import type { Routine, Habit } from "@/lib/types";
@@ -11,15 +11,16 @@ type Props = (
 ) & { initialHabits?: Habit[] };
 
 export function RoutineBuilderPage({ mode, routine, initialHabits }: Props) {
-  const { initEmpty, initFromRoutine } = useRoutineBuilderStore();
+  const initialized = useRef(false);
 
-  useEffect(() => {
+  if (!initialized.current) {
     if (mode === "create") {
-      initEmpty();
+      useRoutineBuilderStore.getState().initEmpty();
     } else {
-      initFromRoutine(routine);
+      useRoutineBuilderStore.getState().initFromRoutine(routine);
     }
-  }, [mode, routine, initEmpty, initFromRoutine]);
+    initialized.current = true;
+  }
 
   return <RoutineBuilder mode={mode} initialHabits={initialHabits} />;
 }
