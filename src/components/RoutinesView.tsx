@@ -22,13 +22,15 @@ import { useRoutines, useDeleteRoutine } from "@/hooks/use-routines";
 import { useHaptics } from "@/hooks/use-haptics";
 import type { Routine } from "@/lib/types";
 
-const ROW_COLORS = [
-  "bg-primary/20",
-  "bg-primary/30",
-  "bg-primary/10",
-  "bg-primary/15",
-  "bg-primary/25",
-];
+const MAX_VISIBLE_BLOCKS = 3;
+
+function getBlockOpacity(setCount: number): string {
+  if (setCount <= 1) return "bg-primary/10";
+  if (setCount <= 2) return "bg-primary/20";
+  if (setCount <= 3) return "bg-primary/30";
+  if (setCount <= 4) return "bg-primary/40";
+  return "bg-primary/50";
+}
 
 function RoutineCard({ routine }: { routine: Routine }) {
   const router = useRouter();
@@ -62,8 +64,8 @@ function RoutineCard({ routine }: { routine: Routine }) {
 
   return (
     <>
-      <Link href={`/routines/${routine.id}`} className="block">
-        <Card className="p-5 hover:shadow-md transition-shadow cursor-pointer relative group">
+      <Link href={`/routines/${routine.id}`} className="block h-full">
+        <Card className="p-5 h-full flex flex-col hover:shadow-md active:scale-[0.98] transition-all cursor-pointer relative group">
           {/* Action icons */}
           <div className="absolute top-3 right-3 flex items-center gap-1">
             <Button
@@ -96,10 +98,10 @@ function RoutineCard({ routine }: { routine: Routine }) {
           {routine.name}
         </p>
         <div className="space-y-3">
-          {routine.blocks.map((block, i) => (
+          {routine.blocks.slice(0, MAX_VISIBLE_BLOCKS).map((block, i) => (
             <div
               key={block.id}
-              className={`flex items-center justify-between rounded-lg px-3 py-2.5 ${ROW_COLORS[i % ROW_COLORS.length]}`}
+              className={`flex items-center justify-between rounded-lg px-3 py-2.5 ${getBlockOpacity(block.sets.length)}`}
             >
               <div className="flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-primary/40 flex items-center justify-center text-[10px] font-bold text-primary-foreground">
@@ -114,8 +116,13 @@ function RoutineCard({ routine }: { routine: Routine }) {
               </span>
             </div>
           ))}
+          {routine.blocks.length > MAX_VISIBLE_BLOCKS && (
+            <p className="text-xs text-muted-foreground text-center">
+              +{routine.blocks.length - MAX_VISIBLE_BLOCKS} more
+            </p>
+          )}
         </div>
-        <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+        <div className="mt-auto pt-3 border-t border-border flex items-center justify-between">
           <span className="text-xs text-muted-foreground">Total</span>
           <span className="text-sm font-mono font-semibold text-foreground">
             {timeDisplay}
