@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -169,19 +168,9 @@ export function RoutinesView({
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <AnimatePresence initial={false}>
-            {routines.map((routine) => (
-              <motion.div
-                key={routine.id}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <RoutineCard routine={routine} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          {routines.map((routine) => (
+            <RoutineCard key={routine.id} routine={routine} />
+          ))}
         </div>
       )}
     </div>
