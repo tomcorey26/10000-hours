@@ -1,0 +1,4 @@
+- Claude + Mock + Playright
+- Use Design system generated at beginning claude can reference
+- Validation
+- Clear context and do more target smaller prompts

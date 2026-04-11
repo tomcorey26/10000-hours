@@ -120,7 +120,7 @@ export function RoutineBlockCard(props: Props) {
     <Card className="overflow-hidden pb-0">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <h3 className="text-base font-semibold text-primary">
+        <h3 className="text-base font-semibold">
           {block.habitName}
         </h3>
         {isEditable && (
