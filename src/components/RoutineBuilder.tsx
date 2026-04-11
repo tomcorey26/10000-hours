@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
@@ -66,15 +66,13 @@ export function RoutineBuilder({ mode, initialHabits }: RoutineBuilderProps) {
   const isSaving = createRoutine.isPending || updateRoutine.isPending;
   const canSave = name.trim().length > 0 && blocks.length > 0;
 
-  const totalMinutes = useMemo(() => {
-    let total = 0;
-    for (const block of blocks) {
-      for (const s of block.sets) {
-        total += s.durationSeconds + s.breakSeconds;
-      }
+  let totalSeconds = 0;
+  for (const block of blocks) {
+    for (const s of block.sets) {
+      totalSeconds += s.durationSeconds + s.breakSeconds;
     }
-    return Math.round(total / 60);
-  }, [blocks]);
+  }
+  const totalMinutes = Math.round(totalSeconds / 60);
 
   // beforeunload handler
   useEffect(() => {
@@ -86,20 +84,20 @@ export function RoutineBuilder({ mode, initialHabits }: RoutineBuilderProps) {
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
 
-  const handleDiscard = useCallback(() => {
+  function handleDiscard() {
     if (isDirty) {
       setShowDiscardDialog(true);
     } else {
       router.push("/routines");
     }
-  }, [isDirty, router]);
+  }
 
-  const handleConfirmDiscard = useCallback(() => {
+  function handleConfirmDiscard() {
     setShowDiscardDialog(false);
     router.push("/routines");
-  }, [router]);
+  }
 
-  const handleSave = useCallback(async () => {
+  async function handleSave() {
     if (!canSave) return;
     try {
       const payload = toPayload();
@@ -115,44 +113,35 @@ export function RoutineBuilder({ mode, initialHabits }: RoutineBuilderProps) {
     } catch {
       toast.error("Failed to save routine");
     }
-  }, [canSave, mode, routineId, toPayload, createRoutine, updateRoutine, trigger, router]);
+  }
 
-  const handleSelectHabit = useCallback(
-    (habit: { id: number; name: string }) => {
-      setPickerView({ type: "config", habitId: habit.id, habitName: habit.name });
-    },
-    []
-  );
+  function handleSelectHabit(habit: { id: number; name: string }) {
+    setPickerView({ type: "config", habitId: habit.id, habitName: habit.name });
+  }
 
-  const handleAddBlock = useCallback(
-    (config: {
-      sets: number;
-      durationMinutes: number;
-      breakMinutes: number;
-      notes: string | null;
-    }) => {
-      if (pickerView.type !== "config") return;
-      addBlock({
-        habitId: pickerView.habitId,
-        habitName: pickerView.habitName,
-        notes: config.notes,
-        sets: Array.from({ length: config.sets }, () => ({
-          durationSeconds: config.durationMinutes * 60,
-          breakSeconds: config.breakMinutes * 60,
-        })),
-      });
-      trigger("success");
-      setPickerView({ type: "closed" });
-    },
-    [pickerView, addBlock, trigger]
-  );
+  function handleAddBlock(config: {
+    sets: number;
+    durationMinutes: number;
+    breakMinutes: number;
+    notes: string | null;
+  }) {
+    if (pickerView.type !== "config") return;
+    addBlock({
+      habitId: pickerView.habitId,
+      habitName: pickerView.habitName,
+      notes: config.notes,
+      sets: Array.from({ length: config.sets }, () => ({
+        durationSeconds: config.durationMinutes * 60,
+        breakSeconds: config.breakMinutes * 60,
+      })),
+    });
+    trigger("success");
+    setPickerView({ type: "closed" });
+  }
 
-  const handleCreateHabit = useCallback(
-    async (habitName: string) => {
-      await addHabit.mutateAsync(habitName);
-    },
-    [addHabit]
-  );
+  async function handleCreateHabit(habitName: string) {
+    await addHabit.mutateAsync(habitName);
+  }
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
