@@ -25,7 +25,7 @@ export function RoutineStickyHeader({
   const timeDisplay = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 
   return (
-    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3 -mx-4 md:-mx-6">
+    <div className="sticky -top-0.5 md:-top-6 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 md:px-6 py-3 -mx-4 md:-mx-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
