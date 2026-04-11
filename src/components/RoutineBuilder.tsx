@@ -164,6 +164,7 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
       <RoutineStickyHeader
         totalMinutes={totalMinutes}
         habitCount={blocks.length}
+        onBack={handleDiscard}
         onDiscard={handleDiscard}
         onSave={handleSave}
         onDelete={mode === "edit" ? () => setShowDeleteDialog(true) : undefined}
