@@ -144,7 +144,7 @@ export function RoutineBuilder({ mode, initialHabits }: RoutineBuilderProps) {
   }
 
   return (
-    <div className="flex flex-col min-h-0 flex-1">
+    <div className="flex flex-col min-h-0 flex-1 -mt-0.5 md:-mt-6">
       <RoutineStickyHeader
         totalMinutes={totalMinutes}
         habitCount={blocks.length}
@@ -169,10 +169,10 @@ export function RoutineBuilder({ mode, initialHabits }: RoutineBuilderProps) {
           {blocks.map((block) => (
             <motion.div
               key={block.clientId}
-              // initial={{ opacity: 0, height: 0 }}
-              // animate={{ opacity: 1, height: "auto" }}
-              // exit={{ opacity: 0, height: 0 }}
-              // transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
             >
               <RoutineBlockCard
                 block={block}
