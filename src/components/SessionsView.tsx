@@ -11,6 +11,7 @@ import { formatTime } from '@/lib/format';
 import { useSessions, useDeleteSession } from '@/hooks/use-sessions';
 import { useHaptics } from '@/hooks/use-haptics';
 import type { Session } from '@/lib/types';
+import { PageHeader } from '@/components/ui/page-header';
 
 type DateRange = 'today' | 'week' | 'month' | 'all';
 
@@ -67,6 +68,7 @@ export function SessionsView({
 
   return (
     <div className="space-y-4">
+      <PageHeader title="Sessions" />
       {/* Filters */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">

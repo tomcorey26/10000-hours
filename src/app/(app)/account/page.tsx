@@ -3,6 +3,7 @@
 import { useAuth } from '@/hooks/use-auth';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function AccountPage() {
   const { data: user, isLoading } = useAuth();
@@ -12,8 +13,8 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="py-6 space-y-6">
-      <h2 className="text-lg font-semibold">Account</h2>
+    <div className="space-y-6">
+      <PageHeader title="Account" />
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input id="email" type="email" value={user?.email ?? ''} readOnly />

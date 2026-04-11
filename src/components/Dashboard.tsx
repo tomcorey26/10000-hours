@@ -28,6 +28,7 @@ import {
   useStartTimer,
   useStopTimer,
 } from "@/hooks/use-habits";
+import { PageHeader } from "@/components/ui/page-header";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useTimerStore } from "@/stores/timer-store";
 import { ApiError } from "@/lib/api";
@@ -325,6 +326,8 @@ export function Dashboard({
           onCancel={() => setLoggingHabitId(null)}
         />
       )}
+
+      <PageHeader title="Habits" />
 
       <div className="mb-3">
         <AddHabitForm onAdd={handleAdd} />

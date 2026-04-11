@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -152,9 +153,9 @@ export function RoutinesView({
   const { data: routines } = useRoutines(initialRoutines);
 
   return (
-    <div className="py-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Your Routines</h2>
+    <div>
+      <div className="flex items-center justify-between">
+        <PageHeader title="Routines" />
         <Link href="/routines/new">
           <Button size="sm">
             <Plus className="h-4 w-4 mr-1" />

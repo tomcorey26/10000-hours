@@ -3,6 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { formatTime } from '@/lib/format';
 import { useRankings } from '@/hooks/use-rankings';
+import { PageHeader } from '@/components/ui/page-header';
 
 const RANK_COLORS: Record<number, string> = {
   1: 'text-yellow-500',
@@ -26,10 +27,7 @@ export function RankingsView({ initialRankings }: { initialRankings?: Ranking[] 
 
   return (
     <div className="space-y-2">
-      <div className="text-center py-4">
-        <h2 className="text-2xl font-bold">Rankings</h2>
-        <p className="text-sm text-muted-foreground">Your skills ranked by total time</p>
-      </div>
+      <PageHeader title="Rankings" />
       {rankings.map((r) => (
         <Card key={r.habitId}>
           <CardContent className="p-3 flex items-center gap-3">
