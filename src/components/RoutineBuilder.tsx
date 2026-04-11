@@ -33,12 +33,13 @@ type PickerView =
 
 type RoutineBuilderProps = {
   mode: "create" | "edit";
+  initialHabits?: import("@/lib/types").Habit[];
 };
 
-export function RoutineBuilder({ mode }: RoutineBuilderProps) {
+export function RoutineBuilder({ mode, initialHabits }: RoutineBuilderProps) {
   const router = useRouter();
   const { trigger } = useHaptics();
-  const { data: habits } = useHabits();
+  const { data: habits } = useHabits(initialHabits);
   const addHabit = useAddHabit();
   const createRoutine = useCreateRoutine();
   const updateRoutine = useUpdateRoutine();
